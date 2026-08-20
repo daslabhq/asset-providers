@@ -166,8 +166,7 @@ return await resp.json();
 
 Rules:
 
-- No `import`s — each tool file is self-contained. (Multi-file tools with a
-  shared `lib/` are planned, not yet supported.)
+- No `import`s — each tool file is self-contained.
 - `ctx.input` — the tool call's arguments. `ctx.credential` — the connected
   account's credentials (empty for `auth: none`). `fetch` is global.
 - `throw` for errors; the message reaches the caller.

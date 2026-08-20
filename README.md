@@ -1,81 +1,55 @@
 # Daslab Asset Providers
 
-Open integrations for [Daslab](https://daslab.run). An **asset provider**
-connects an external service as **typed, browseable assets** plus the AI tools
-that operate on them — declared as a folder of files, no server code and no
-deploy.
+An **asset provider** connects an external service to [Daslab](https://daslab.run): the resources the service holds become typed, browseable assets, and the tools an agent uses on them ship in the same folder. There is no SDK and no build step. A provider is a JSON manifest, plain tool files, and an HTML view:
 
 ```
 providers/polyhaven/
-├── provider.json          # manifest: identity, asset types, tools, views
+├── provider.json          # identity, asset types, tools, views
 ├── tools/
 │   ├── polyhaven_search.ts
 │   ├── polyhaven_files.ts
 │   ├── polyhaven_info.ts
 │   └── browse.ts          # feeds the visual asset picker
 └── views/
-    ├── preview.html       # how a pinned asset draws
+    ├── preview.html       # how a pinned asset draws itself
     └── preview.fixture.json
 ```
 
-## The assets concept
+## Resources become assets you can browse, pin, and see
 
-Most integration frameworks give an AI a bag of functions. An asset provider
-gives it — and the person working alongside it — **things**:
+Most integration formats describe functions. This one also describes the things the functions work on. Every asset type declared in the manifest appears in Daslab's asset picker, so a person can find a resource by name instead of the agent guessing ids.
 
-1. **Browse** — every resource type the provider declares shows up in a visual
-   asset picker, searchable, with names and thumbnails. No id-guessing.
-2. **Pin** — picking one turns it into an asset in your scene, carrying typed
-   fields (`slug`, `tags`, `max_resolution`, …) declared in the manifest.
-3. **Act** — the provider's tools are available to the AI in every
-   conversation where the provider is connected, alongside the pinned assets
-   they operate on.
-4. **See** — an asset draws itself through the provider's **view**: a
-   self-contained HTML file rendering the asset's fields.
+The `polyhaven` example makes this concrete. It declares three asset types over Poly Haven's CC0 library: HDRIs, PBR textures, and 3D models, about 2,300 in all. In Daslab you search the picker for "concrete floor" and pin the texture into a scene. Every workflow becomes a scene — its data, its tools, the agent that runs it, and the history of everything it did. The pinned texture carries the fields the provider declared (slug, tags, resolution), draws itself through the provider's view, and when the agent needs the actual image maps, `polyhaven_files` resolves the download URLs. No key is needed anywhere in that path.
 
-The [Poly Haven provider](providers/polyhaven/) shows all four with zero auth:
-three asset types (HDRIs, PBR textures, 3D models — ~2,300 CC0 assets),
-searchable browse, three AI tools, and an image-preview view. An asset
-provider whose assets are literally 3D assets.
-
-## Examples
+## Two examples cover the format
 
 | Provider | Auth | Shows |
 |----------|------|-------|
-| [`timezone`](providers/timezone/) | none | Minimal: one code tool, one live view |
-| [`polyhaven`](providers/polyhaven/) | none | The full asset model: 3 asset types, browse + search, typed fields, display templates, a preview view |
+| [`timezone`](providers/timezone/) | none | The minimal provider: one code tool, one live clock view |
+| [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, a preview view |
 
-Planned next: an API-key example (credential templating in `http_call`) and a
-market-data example (Polymarket).
+Both pass the validator and both load into a Daslab server unchanged.
 
-## Authoring a provider
+## Write one by copying an example
 
-Read [the manifest spec](spec/01-manifest.md) — it covers every field. The
-short version:
+Start from the example closer to what you're building and rename the folder. [The manifest spec](spec/01-manifest.md) covers every field; the short path:
 
-1. Copy an example folder and rename it.
-2. Declare identity + `auth` in `provider.json`.
-3. Declare your resource `assetTypes` with `fields` and `display`.
-4. Write tools: `http_call` for single-request tools (preferred — auditable at
-   a glance), `code` bodies for anything needing logic. Add one `role:
-   "browse"` tool to power the asset picker.
-5. Add a view (`views/*.html` reading `window.__ASSET__`) with a fixture.
-6. Validate:
+1. Declare identity and auth in `provider.json`. The format covers API-key and keyless services; OAuth is not expressible in it.
+2. Declare your resource types with their fields and display templates.
+3. Write the tools. Use `http_call` when a tool is one HTTP request: it is declarative, and a reviewer can read it at a glance. Use a `code` body when you need logic; each body is a self-contained file that reads `ctx.input` and returns a value.
+4. Add one tool with `role: "browse"` so the asset picker has something to show.
+5. Give your types a view: an HTML file that reads `window.__ASSET__`, next to a fixture of mock fields for previewing it.
+
+Then check your work:
 
 ```bash
 bun cli/validate.ts providers/yourprovider
 ```
 
-## Contributing
+The validator checks the manifest, the entry files, and the naming rules, and tells you exactly what's missing.
 
-PRs welcome. Two things reviewers hold the line on:
+## A merged provider runs as first-party code
 
-- **Merged providers run as first-party code.** Prefer `http_call` impls —
-  they are declarative and reviewable at a glance. A `code` body gets real
-  scrutiny: self-contained, no surprises, errors thrown not swallowed.
-- **Scope**: `api_key` and keyless providers only for now — OAuth isn't
-  expressible in the format yet.
+That is the standard pull requests are reviewed against. Prefer `http_call` impls, which can be audited at a glance. A `code` body gets read line by line: keep it self-contained, and let errors throw rather than swallowing them.
 
-## License
-
-MIT.
+MIT licensed.

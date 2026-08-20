@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    color: #f2f6ff; background: #0a0e14;
+    display: flex; align-items: center; justify-content: center; height: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 340px; padding: 18px 18px 16px; border-radius: 20px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  }
+  .question { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.35; }
+  .outcomes { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .bar-wrap { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .bar { height: 100%; border-radius: 999px; background: #00d395; transition: width 400ms ease; }
+  .row:nth-child(2) .bar { background: #5b8def; }
+  .row:nth-child(3) .bar { background: #f59e0b; }
+  .label { font-size: 12px; font-weight: 550; color: rgba(242,246,255,0.75); }
+  .pct { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .meta { margin-top: 14px; display: flex; gap: 6px; align-items: center; }
+  .pill {
+    padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 600;
+    color: rgba(242,246,255,0.6); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+  }
+  .live { color: #6ee7b7; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); display: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="question" id="question">—</div>
+    <div class="outcomes" id="outcomes"></div>
+    <div class="meta">
+      <span class="pill" id="volume"></span>
+      <span class="pill" id="ends"></span>
+      <span class="pill live" id="live">live</span>
+    </div>
+  </div>
+<script>
+  var A = (window.__ASSET__ || {});
+  document.getElementById("question").textContent = A.name || "Polymarket market";
+  document.getElementById("volume").textContent = A.volume ? "Vol " + A.volume : "";
+  document.getElementById("ends").textContent = A.end_date ? "Ends " + String(A.end_date).slice(0, 10) : "";
+
+  // "Yes: 62.5%, No: 37.5%" → [{label, pct}]
+  function parsePrices(s) {
+    return String(s || "").split(",").map(function (part) {
+      var m = part.trim().match(/^(.*):\s*([\d.]+)%$/);
+      return m ? { label: m[1], pct: parseFloat(m[2]) } : null;
+    }).filter(Boolean);
+  }
+
+  function render(rows) {
+    var el = document.getElementById("outcomes");
+    el.innerHTML = "";
+    rows.slice(0, 3).forEach(function (r) {
+      var row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML =
+        '<span class="label"></span><span class="pct"></span>' +
+        '<div class="bar-wrap"><div class="bar" style="width:0%"></div></div>';
+      row.querySelector(".label").textContent = r.label;
+      row.querySelector(".pct").textContent = r.pct.toFixed(1) + "%";
+      el.appendChild(row);
+      requestAnimationFrame(function () {
+        row.querySelector(".bar").style.width = Math.max(2, Math.min(100, r.pct)) + "%";
+      });
+    });
+  }
+
+  // The pinned fields render immediately; a live fetch replaces them when it succeeds.
+  render(parsePrices(A.prices));
+
+  if (A.slug) {
+    fetch("https://gamma-api.polymarket.com/markets?slug=" + encodeURIComponent(A.slug))
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (list) {
+        var m = list && list[0];
+        if (!m) return;
+        var outcomes = JSON.parse(m.outcomes || "[]");
+        var prices = JSON.parse(m.outcomePrices || "[]");
+        var rows = outcomes.map(function (o, i) {
+          return { label: o, pct: (parseFloat(prices[i]) || 0) * 100 };
+        });
+        if (rows.length) {
+          render(rows);
+          document.getElementById("live").style.display = "inline-block";
+        }
+      })
+      .catch(function () { /* keep the pinned snapshot */ });
+  }
+  console.log("polymarket market view rendered for " + (A.slug || "fixture"));
+</script>
+</body>
+</html>

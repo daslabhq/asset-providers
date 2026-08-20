@@ -1,0 +1,57 @@
+{
+  "id": "brave",
+  "name": "Brave Search",
+  "icon": "magnifyingglass",
+  "color": "FB542B",
+  "auth": { "type": "api_key", "credentialField": "api_key" },
+  "account": {
+    "keyDescription": "From https://brave.com/search/api/",
+    "dashboardUrl": "https://api-dashboard.search.brave.com/app/keys"
+  },
+  "logo": { "type": "simpleIcons", "slug": "brave" },
+  "instructionText": "Create an API key from the Brave Search API dashboard.",
+  "website": {
+    "tagline": "Privacy-focused web search",
+    "description": "Search the web with the Brave Search API: titles, URLs, and descriptions for current information, news, and articles.",
+    "category": "search",
+    "useCases": [
+      "Find current information and news",
+      "Research a topic from chat"
+    ],
+    "public": true,
+    "docsUrl": "https://brave.com/search/api/"
+  },
+  "contextMessage": "Use brave_web_search to search the web for current information.",
+  "tools": [
+    {
+      "name": "brave_web_search",
+      "description": "Search the web using Brave Search. Returns web results including titles, URLs, and descriptions. Use this for finding current information, news, articles, and web content.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search query (max 400 chars, 50 words)" },
+          "count": { "type": "number", "description": "Number of results to return (1-20, default 10)" },
+          "freshness": { "type": "string", "description": "Time filter: 'pd' (past day), 'pw' (past week), 'pm' (past month), 'py' (past year)" }
+        },
+        "required": ["query"]
+      },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://api.search.brave.com/res/v1/web/search",
+        "query": {
+          "q": { "from": "input", "key": "query" },
+          "count": { "from": "input", "key": "count", "optional": true },
+          "freshness": { "from": "input", "key": "freshness", "optional": true }
+        },
+        "headers": {
+          "Accept": { "literal": "application/json" },
+          "Accept-Encoding": { "literal": "gzip" },
+          "X-Subscription-Token": { "from": "credential", "key": "api_key" }
+        },
+        "output": { "path": "$.web.results", "wrap": "json", "prefix": "Brave Search results:" }
+      }
+    }
+  ]
+}

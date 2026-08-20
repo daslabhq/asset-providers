@@ -86,7 +86,7 @@
   "tools": [
     {
       "name": "polyhaven_search",
-      "description": "Search Poly Haven's CC0 library of HDR environment maps, PBR textures, and 3D models. Everything is CC0 — free to use, rehost, and ship, no attribution required. Returns {slug, name, type, tags, categories, authors, max_resolution, thumbnail_url}. Use the slug with polyhaven_files to get download URLs, or as external_id when adding a polyhaven asset to a scene. Good queries: 'workshop industrial' (HDRIs), 'concrete floor' (textures).",
+      "description": "Search Poly Haven's CC0 library of HDR environment maps, PBR textures, and 3D models. Everything is CC0 — free to use, rehost, and ship, no attribution required. Returns {slug, name, type, tags, categories, authors, max_resolution, thumbnail_url}. Use the slug with polyhaven_files to get download URLs. Good queries: 'workshop industrial' (HDRIs), 'concrete floor' (textures).",
       "readOnly": true,
       "inputSchema": {
         "type": "object",
@@ -145,8 +145,8 @@
     }
   ],
   "views": [
-    { "assetType": "polyhaven_hdri", "render": "views/preview.html", "fixture": "views/preview.fixture.json" },
-    { "assetType": "polyhaven_texture", "render": "views/preview.html", "fixture": "views/preview.fixture.json" },
-    { "assetType": "polyhaven_model", "render": "views/preview.html", "fixture": "views/preview.fixture.json" }
+    { "assetType": "polyhaven_hdri", "render": "views/hdri.html", "fixture": "views/hdri.fixture.json" },
+    { "assetType": "polyhaven_texture", "render": "views/texture.html", "fixture": "views/texture.fixture.json" },
+    { "assetType": "polyhaven_model", "render": "views/model.html", "fixture": "views/model.fixture.json" }
   ]
 }

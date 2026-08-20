@@ -21,14 +21,16 @@ Most integration formats describe functions. This one also describes the things 
 
 The `polyhaven` example makes this concrete. It declares three asset types over Poly Haven's CC0 library: HDRIs, PBR textures, and 3D models, about 2,300 in all. In Daslab you search the picker for "concrete floor" and pin the texture into a scene. Every workflow becomes a scene — its data, its tools, the agent that runs it, and the history of everything it did. The pinned texture carries the fields the provider declared (slug, tags, resolution), draws itself through the provider's view, and when the agent needs the actual image maps, `polyhaven_files` resolves the download URLs. No key is needed anywhere in that path.
 
-## Two examples cover the format
+## Four examples cover the format
 
 | Provider | Auth | Shows |
 |----------|------|-------|
 | [`timezone`](providers/timezone/) | none | The minimal provider: one code tool, one live clock view |
-| [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, a preview view |
+| [`brave`](providers/brave/) | api_key | A provider in one file: a single `http_call` tool with the credential templated into a header |
+| [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, one view per type |
+| [`polymarket`](providers/polymarket/) | none | Hierarchy: markets nest under events, browse with search, a market view that fetches live odds |
 
-Both pass the validator and both load into a Daslab server unchanged.
+All four pass the validator and load into a Daslab server unchanged.
 
 ## Write one by copying an example
 
@@ -48,8 +50,8 @@ bun cli/validate.ts providers/yourprovider
 
 The validator checks the manifest, the entry files, and the naming rules, and tells you exactly what's missing.
 
-## A merged provider runs as first-party code
+## A merged provider goes live in the app
 
-That is the standard pull requests are reviewed against. Prefer `http_call` impls, which can be audited at a glance. A `code` body gets read line by line: keep it self-contained, and let errors throw rather than swallowing them.
+Providers merged here ship in Daslab as community integrations, which is why review is strict: a merged provider runs with the same standing as one we wrote. Prefer `http_call` impls, which can be audited at a glance. A `code` body gets read line by line: keep it self-contained, and let errors throw rather than swallowing them.
 
 MIT licensed.

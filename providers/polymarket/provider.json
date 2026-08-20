@@ -1,0 +1,173 @@
+{
+  "id": "polymarket",
+  "name": "Polymarket",
+  "icon": "chart.line.uptrend.xyaxis",
+  "color": "00D395",
+  "auth": { "type": "none" },
+  "logo": { "type": "brandfetch", "domain": "polymarket.com" },
+  "website": {
+    "tagline": "Prediction market data and odds",
+    "description": "Real-time prediction market data from Polymarket: browse events, check market prices, and search across politics, sports, crypto, and current events. Public API, no key needed.",
+    "category": "finance",
+    "useCases": [
+      "Check prediction market odds on current events",
+      "Research market sentiment on a topic",
+      "Pin a market and watch its probability move"
+    ],
+    "public": true,
+    "docsUrl": "https://docs.polymarket.com"
+  },
+  "contextMessage": "Polymarket prediction markets are available (no key needed). Use polymarket_get_markets, polymarket_search, polymarket_get_event, and polymarket_price_history to query odds, volume, and price history.",
+  "assetTypes": [
+    {
+      "id": "event",
+      "name": "Event",
+      "namePlural": "Events",
+      "description": "A prediction market event: a group of related markets, like an election with one market per candidate",
+      "icon": "calendar",
+      "hasSearch": true,
+      "fields": [
+        { "key": "slug", "label": "Slug", "type": "string" },
+        { "key": "volume", "label": "Volume", "type": "string" },
+        { "key": "liquidity", "label": "Liquidity", "type": "string" },
+        { "key": "market_count", "label": "Markets", "type": "string" },
+        { "key": "end_date", "label": "Ends", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string" },
+        { "key": "url", "label": "Polymarket page", "type": "url" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{volume}}" },
+        "card": { "subtitle": ["{{market_count}} markets", "{{volume}}"] }
+      }
+    },
+    {
+      "id": "market",
+      "name": "Market",
+      "namePlural": "Markets",
+      "description": "One prediction market: a question with outcome prices that move as people trade",
+      "icon": "chart.bar.fill",
+      "parent": "event",
+      "hasSearch": true,
+      "fields": [
+        { "key": "slug", "label": "Slug", "type": "string" },
+        { "key": "prices", "label": "Prices", "type": "string" },
+        { "key": "volume", "label": "Volume", "type": "string" },
+        { "key": "liquidity", "label": "Liquidity", "type": "string" },
+        { "key": "end_date", "label": "Ends", "type": "string" },
+        { "key": "url", "label": "Polymarket page", "type": "url" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{prices}}" },
+        "card": { "subtitle": ["{{prices}}", "{{volume}}"] }
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "polymarket_get_markets",
+      "description": "Get a list of prediction markets from Polymarket. Returns markets with their questions, outcome prices, volume, and trading status.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "number", "description": "Maximum number of markets to return (default 25, max 100)" },
+          "offset": { "type": "number", "description": "Number of markets to skip for pagination (default 0)" },
+          "active": { "type": "boolean", "description": "Filter for active markets only (default true)" },
+          "closed": { "type": "boolean", "description": "Include closed/resolved markets (default false)" },
+          "order": { "type": "string", "enum": ["volume", "liquidity", "startDate", "endDate", "createdAt"], "description": "Field to sort by (default volume)" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_get_markets.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_get_market",
+      "description": "Get detailed information about one prediction market by its ID or slug: description, outcome prices, volume, liquidity, dates, and resolution source.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "market_id": { "type": "string", "description": "The market ID or slug to fetch" }
+        },
+        "required": ["market_id"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_get_market.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_get_events",
+      "description": "Get a list of events from Polymarket. Events are groups of related markets, like an election with one market per candidate.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "number", "description": "Maximum number of events to return (default 25, max 100)" },
+          "offset": { "type": "number", "description": "Number of events to skip for pagination (default 0)" },
+          "active": { "type": "boolean", "description": "Filter for active events only (default true)" },
+          "closed": { "type": "boolean", "description": "Include closed/resolved events (default false)" },
+          "order": { "type": "string", "enum": ["volume", "liquidity", "startDate", "endDate", "creationDate"], "description": "Field to sort by (default volume)" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_get_events.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_get_event",
+      "description": "Get detailed information about one event by its ID or slug, including all its markets with their current outcome prices.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "event_id": { "type": "string", "description": "The event ID or slug to fetch" }
+        },
+        "required": ["event_id"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_get_event.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_search",
+      "description": "Search prediction market events by keyword. Matches titles, descriptions, and slugs.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search query to match against event titles and descriptions" },
+          "limit": { "type": "number", "description": "Maximum number of results to return (default 25)" },
+          "active": { "type": "boolean", "description": "Filter for active events only (default true)" }
+        },
+        "required": ["query"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_search.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_price_history",
+      "description": "Get historical price/probability data for a prediction market. Returns timestamped price points per outcome showing how the odds moved.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "market_id": { "type": "string", "description": "The market ID or slug to fetch price history for" },
+          "interval": { "type": "string", "enum": ["1h", "6h", "1d", "1w", "1m", "max"], "description": "Time window ending now (default 1w)" },
+          "fidelity": { "type": "number", "description": "Resolution in minutes; lower means more data points (default 60)" }
+        },
+        "required": ["market_id"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polymarket_price_history.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polymarket_browse",
+      "description": "Browse events and markets for the asset picker (internal — not an LLM tool).",
+      "role": "browse",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Asset type id: 'event' | 'market'" },
+          "search": { "type": "string", "description": "Search query from the browse UI" },
+          "parentId": { "type": "string", "description": "Event id when browsing a specific event's markets" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/browse.ts", "timeoutMs": 20000 }
+    }
+  ],
+  "views": [
+    { "assetType": "polymarket_market", "render": "views/market.html", "fixture": "views/market.fixture.json" }
+  ]
+}

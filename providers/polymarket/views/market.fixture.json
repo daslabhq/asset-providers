@@ -1,0 +1,8 @@
+{
+  "slug": "example-market",
+  "name": "Will the example market resolve Yes by end of year?",
+  "prices": "Yes: 62.5%, No: 37.5%",
+  "volume": "$1,234,567",
+  "end_date": "2026-12-31",
+  "url": "https://polymarket.com/event/example-market"
+}

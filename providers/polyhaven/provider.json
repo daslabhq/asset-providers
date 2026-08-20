@@ -1,0 +1,152 @@
+{
+  "id": "polyhaven",
+  "name": "Poly Haven",
+  "icon": "sun.max.fill",
+  "color": "3B82F6",
+  "auth": { "type": "none" },
+  "logo": { "type": "brandfetch", "domain": "polyhaven.com" },
+  "website": {
+    "tagline": "CC0 HDRIs, PBR textures and 3D models — the lighting layer for any 3D scene",
+    "description": "Search and pull from Poly Haven's public CC0 library: ~980 HDR environment maps, ~785 PBR texture sets, ~520 models. No key, no attribution, and licensed so assets can be rehosted and shipped anywhere. Image-based lighting from one HDRI is the difference between a 3D view that reads as a product render and one that reads as a toy.",
+    "category": "media",
+    "useCases": [
+      "Light a 3D scene with an industrial workshop HDRI",
+      "Pull a concrete floor PBR set for a factory view",
+      "Browse and add environment maps from the Add Asset picker"
+    ],
+    "public": true,
+    "docsUrl": "https://polyhaven.com/api"
+  },
+  "contextMessage": "Poly Haven is available (no key needed): polyhaven_search finds CC0 HDRIs, PBR textures and models; polyhaven_files resolves web-sized download URLs. Everything is CC0 — free to rehost and ship. For a 3D view: one HDRI as scene.environment plus ACESFilmic tone mapping does most of the work; prefer a texture's packed `arm` map over separate AO/roughness maps.",
+  "assetTypes": [
+    {
+      "id": "hdri",
+      "name": "HDRI",
+      "namePlural": "HDRIs",
+      "description": "A CC0 HDR environment map — image-based lighting for a 3D scene",
+      "icon": "sun.max.fill",
+      "hasSearch": true,
+      "fields": [
+        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
+        { "key": "asset_kind", "label": "Kind", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string" },
+        { "key": "authors", "label": "Authors", "type": "string" },
+        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
+        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
+        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
+        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+      }
+    },
+    {
+      "id": "texture",
+      "name": "Texture",
+      "namePlural": "Textures",
+      "description": "A CC0 PBR texture set — diffuse, normal, roughness, AO, displacement",
+      "icon": "square.grid.3x3.fill",
+      "hasSearch": true,
+      "fields": [
+        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
+        { "key": "asset_kind", "label": "Kind", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string" },
+        { "key": "authors", "label": "Authors", "type": "string" },
+        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
+        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
+        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
+        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+      }
+    },
+    {
+      "id": "model",
+      "name": "Model",
+      "namePlural": "Models",
+      "description": "A CC0 3D model — glTF, USD and FBX",
+      "icon": "cube.fill",
+      "hasSearch": true,
+      "fields": [
+        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
+        { "key": "asset_kind", "label": "Kind", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string" },
+        { "key": "authors", "label": "Authors", "type": "string" },
+        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
+        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
+        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
+        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "polyhaven_search",
+      "description": "Search Poly Haven's CC0 library of HDR environment maps, PBR textures, and 3D models. Everything is CC0 — free to use, rehost, and ship, no attribution required. Returns {slug, name, type, tags, categories, authors, max_resolution, thumbnail_url}. Use the slug with polyhaven_files to get download URLs, or as external_id when adding a polyhaven asset to a scene. Good queries: 'workshop industrial' (HDRIs), 'concrete floor' (textures).",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Text matched against slug, name, tags and categories. Omit to list everything of a type." },
+          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models' | 'all' (default all)" },
+          "category": { "type": "string", "description": "Poly Haven category filter, e.g. 'indoor', 'skies', 'floor', 'metal'" },
+          "limit": { "type": "number", "description": "Max results (default 20, max 60)" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/polyhaven_search.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polyhaven_files",
+      "description": "Resolve download URLs for a Poly Haven slug at a given resolution. HDRIs return the environment map; textures return the PBR maps (diffuse, normal, roughness, ao, displacement, and the packed `arm`); models return glTF (with the `includes` sidecar list), USD and FBX. Defaults are web-sized — 1k HDR and 2k JPG — since image-based lighting prefilters the HDRI anyway; ask for 4k+ only for offline rendering.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "description": "Poly Haven asset id, e.g. 'aircraft_workshop_01', 'brushed_concrete'" },
+          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models'. Optional — inferred from the slug if omitted." },
+          "resolution": { "type": "string", "description": "'1k' | '2k' | '4k' | '8k' | '16k' (availability varies per asset)" },
+          "format": { "type": "string", "description": "HDRIs: 'hdr' | 'exr'. Textures: 'jpg' | 'png' | 'exr'." }
+        },
+        "required": ["slug"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polyhaven_files.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polyhaven_info",
+      "description": "Full metadata for one Poly Haven asset: display name, tags, categories, authors, max resolution, publish date. Use polyhaven_files for download URLs.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "description": "Poly Haven asset id" },
+          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models'. Optional — inferred if omitted." }
+        },
+        "required": ["slug"]
+      },
+      "impl": { "kind": "code", "entry": "tools/polyhaven_info.ts", "timeoutMs": 20000 }
+    },
+    {
+      "name": "polyhaven_browse",
+      "description": "Browse the library for the asset picker (internal — not an LLM tool).",
+      "role": "browse",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Asset type id: 'hdri' | 'texture' | 'model'" },
+          "search": { "type": "string", "description": "Search query from the browse UI" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/browse.ts", "timeoutMs": 20000 }
+    }
+  ],
+  "views": [
+    { "assetType": "polyhaven_hdri", "render": "views/preview.html", "fixture": "views/preview.fixture.json" },
+    { "assetType": "polyhaven_texture", "render": "views/preview.html", "fixture": "views/preview.fixture.json" },
+    { "assetType": "polyhaven_model", "render": "views/preview.html", "fixture": "views/preview.fixture.json" }
+  ]
+}

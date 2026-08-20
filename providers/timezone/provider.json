@@ -1,0 +1,31 @@
+{
+  "id": "timezone",
+  "name": "Timezone",
+  "icon": "clock",
+  "color": "6C5CE7",
+  "auth": { "type": "none" },
+  "website": {
+    "tagline": "World clock for any timezone",
+    "description": "Look up the current time, date, and UTC offset for any IANA timezone, and pin a live world clock widget.",
+    "category": "productivity",
+    "public": false
+  },
+  "tools": [
+    {
+      "name": "timezone_now",
+      "description": "Current time, date, and UTC offset for an IANA timezone (e.g. 'Europe/Berlin', 'America/New_York', 'Asia/Tokyo'). No network — computed via Intl.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timezone": { "type": "string", "description": "IANA timezone id, e.g. 'Europe/Berlin'" }
+        },
+        "required": ["timezone"]
+      },
+      "impl": { "kind": "code", "entry": "tools/now.ts" }
+    }
+  ],
+  "views": [
+    { "assetType": "timezone_clock", "render": "views/clock.html", "fixture": "views/clock.fixture.json" }
+  ]
+}

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { --accent: #8b7cf6; --accent2: #c4b5fd; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    color: #f4f3ff;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(139,124,246,0.35), transparent 60%),
+      radial-gradient(100% 70% at 100% 110%, rgba(99,91,255,0.25), transparent 55%),
+      #0a0a14;
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 320px; padding: 30px 28px 26px; border-radius: 28px; text-align: center;
+    background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+  }
+  .city { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .offset {
+    display: inline-block; margin-top: 6px; padding: 3px 11px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; color: var(--accent2);
+    background: rgba(139,124,246,0.16); border: 1px solid rgba(139,124,246,0.30);
+  }
+  .clock { margin: 18px auto 14px; display: block; filter: drop-shadow(0 8px 24px rgba(139,124,246,0.35)); }
+  .time { font-size: 52px; font-weight: 700; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+  .time .sec { font-size: 26px; font-weight: 600; color: var(--accent2); vertical-align: super; margin-left: 2px; }
+  .date { margin-top: 6px; font-size: 14px; color: rgba(244,243,255,0.62); font-weight: 500; }
+  .tz { margin-top: 14px; font-size: 11px; color: rgba(244,243,255,0.38); font-weight: 500; letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="city" id="city">—</div>
+    <div class="offset" id="offset"></div>
+    <svg class="clock" id="clock" width="150" height="150" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+      <g id="ticks"></g>
+      <line id="hHand" x1="50" y1="50" x2="50" y2="30" stroke="#f4f3ff" stroke-width="3.2" stroke-linecap="round"/>
+      <line id="mHand" x1="50" y1="50" x2="50" y2="20" stroke="#f4f3ff" stroke-width="2.4" stroke-linecap="round"/>
+      <line id="sHand" x1="50" y1="56" x2="50" y2="16" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="2.6" fill="var(--accent2)"/>
+    </svg>
+    <div class="time"><span id="time">--:--</span><span class="sec" id="secs">00</span></div>
+    <div class="date" id="date"></div>
+    <div class="tz" id="tzid"></div>
+  </div>
+<script>
+  var A = (window.__ASSET__ || {});
+  var TZ = A.timezone || "UTC";
+  document.getElementById("tzid").textContent = TZ;
+
+  // Hour ticks
+  var ticks = "";
+  for (var i = 0; i < 12; i++) {
+    var a = (i * 30) * Math.PI / 180;
+    var x1 = 50 + Math.sin(a) * 42, y1 = 50 - Math.cos(a) * 42;
+    var x2 = 50 + Math.sin(a) * 46, y2 = 50 - Math.cos(a) * 46;
+    ticks += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="rgba(255,255,255,0.22)" stroke-width="'+(i%3===0?2:1)+'"/>';
+  }
+  document.getElementById("ticks").innerHTML = ticks;
+
+  function partsFor(tz) {
+    var now = new Date();
+    var f = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    var p = {}; f.formatToParts(now).forEach(function (x) { if (x.type !== "literal") p[x.type] = x.value; });
+    var label = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric" }).format(now);
+    var off = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(now).find(function (q) { return q.type === "timeZoneName"; });
+    return { h: (+p.hour) % 12, m: +p.minute, s: +p.second, hh: p.hour, mm: p.minute, ss: p.second, date: label, offset: off ? off.value : "" };
+  }
+  function rot(id, deg) { document.getElementById(id).setAttribute("transform", "rotate(" + deg + " 50 50)"); }
+
+  function tick() {
+    var t = partsFor(TZ);
+    document.getElementById("city").textContent = A.city || A.label || TZ.split("/").pop().replace(/_/g, " ");
+    document.getElementById("offset").textContent = t.offset;
+    document.getElementById("time").textContent = t.hh + ":" + t.mm;
+    document.getElementById("secs").textContent = t.ss;
+    document.getElementById("date").textContent = t.date;
+    rot("hHand", t.h * 30 + t.m * 0.5);
+    rot("mHand", t.m * 6 + t.s * 0.1);
+    rot("sHand", t.s * 6);
+  }
+  tick();
+  setInterval(tick, 1000);
+  console.log("clock widget rendered for " + TZ);
+</script>
+</body>
+</html>

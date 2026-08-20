@@ -46,9 +46,10 @@ Then check your work:
 
 ```bash
 bun cli/validate.ts providers/yourprovider
+bun cli/run.ts providers/yourprovider yourprovider_search '{"query":"test"}'
 ```
 
-The validator checks the manifest, the entry files, and the naming rules, and tells you exactly what's missing.
+The validator checks the manifest, the entry files, and the naming rules, and tells you exactly what's missing. The runner executes one tool locally against the real API, under the same contract the server runs it with; pass `--credential api_key=...` when the provider needs one.
 
 ## A merged provider goes live in the app
 

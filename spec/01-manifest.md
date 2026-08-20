@@ -204,4 +204,4 @@ inline CSS/JS, no external scripts.
 - Code tools are single-file bodies — no imports.
 - One account type per provider, always synthesized.
 - Views power previews and declare the asset's render surface; native in-app
-  rendering of custom views is rolling out.
+  rendering of custom views is not yet live.

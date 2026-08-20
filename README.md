@@ -51,6 +51,14 @@ bun cli/run.ts providers/yourprovider yourprovider_search '{"query":"test"}'
 
 The validator checks the manifest, the entry files, and the naming rules, and tells you exactly what's missing. The runner executes one tool locally against the real API, under the same contract the server runs it with; pass `--credential api_key=...` when the provider needs one.
 
+Then push it into your own Daslab workspace and use it for real:
+
+```bash
+daslab provider push providers/yourprovider
+```
+
+The push is scoped to your workspace, validated before anything is written, and re-pushing updates it. Your provider is usable there on the next message.
+
 ## A merged provider goes live in the app
 
 Providers merged here ship in Daslab as community integrations, which is why review is strict: a merged provider runs with the same standing as one we wrote. Prefer `http_call` impls, which can be audited at a glance. A `code` body gets read line by line: keep it self-contained, and let errors throw rather than swallowing them.

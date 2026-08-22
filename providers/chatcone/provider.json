@@ -1,0 +1,104 @@
+{
+  "id": "chatcone",
+  "name": "Chatcone",
+  "icon": "bubble.left.and.bubble.right",
+  "color": "2563EB",
+  "auth": { "type": "api_key", "credentialField": "api_key" },
+  "account": {
+    "dashboardUrl": "https://www.chatcone.com",
+    "fields": [
+      { "id": "api_key", "label": "API Key", "secret": true, "required": true, "description": "Chatcone → Settings → API (the Open API key)" },
+      { "id": "company_id", "label": "Company ID", "required": true, "placeholder": "Workspace / company id", "description": "The workspace id sent as the company_id header on platform calls" },
+      { "id": "channel_key", "label": "Channel Key", "secret": true, "description": "Primary channel key (e.g. your LINE OA channel), used for identity/tag calls" }
+    ]
+  },
+  "logo": { "type": "brandfetch", "domain": "chatcone.com" },
+  "instructionText": "Connect your Chatcone workspace with the Open API key from Settings → API and your Company ID. Add a channel key (e.g. your LINE OA channel) to use the contact tagging tool.",
+  "website": {
+    "tagline": "Thai omnichannel chat + chatbot — channels, rich menus, and contact tagging",
+    "description": "Connect Chatcone, Thailand's omnichannel chat and AI-chatbot platform (LINE OA, Facebook, Instagram, web widget, marketplaces), to read your channel and rich-menu configuration and taxonomy, and to map and tag contacts against your own customer ids through the official Open API.",
+    "category": "communication",
+    "useCases": [
+      "List the channels and rich-menu layouts configured on a workspace",
+      "Read the chat-label taxonomy used to segment contacts",
+      "Map a LINE or Facebook user to a customer id and tag them"
+    ],
+    "public": true,
+    "docsUrl": "https://www.chatcone.com/manuals"
+  },
+  "knowledge": {
+    "docs": [
+      { "slug": "api-access", "title": "Connecting a Chatcone workspace", "summary": "The API key and Company ID, where each comes from, the per-channel channel key, and the two Chatcone surfaces (Open API v3 and Platform API v2)." },
+      { "slug": "scope-and-limits", "title": "What the API key can and cannot do", "summary": "Configuration reads and contact tagging work with an API key; contact lists and message history do not — those need an agent session token or a portal export. New messages arrive via the outbound webhook only." }
+    ]
+  },
+  "contextMessage": "You have access to Chatcone (Thai omnichannel chat + chatbot). Scope: the API key reads account configuration (channels, rich-menu layouts, chat labels) and can map/tag contacts. It CANNOT list contacts or read past message transcripts — those require an agent session token or a portal export, and new messages arrive only via Chatcone's outbound webhook.",
+  "tools": [
+    {
+      "name": "chatcone_list_channels",
+      "description": "List the messaging channels configured on the Chatcone workspace (LINE, Facebook, Instagram, web widget, …) with their ids and active state.",
+      "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {} },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://api-v2.chatcone.com/api/project/channel/list",
+        "headers": { "authorization": "Bearer {credential.api_key}", "company_id": "{credential.company_id}" },
+        "output": { "path": "$.response", "wrap": "json" }
+      }
+    },
+    {
+      "name": "chatcone_list_richmenu_layouts",
+      "description": "List the LINE rich-menu layout catalog available to this workspace — layout ids, sizes, and tap-area geometry.",
+      "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {} },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://api-v2.chatcone.com/api/menu/line/listLayout",
+        "headers": { "authorization": "Bearer {credential.api_key}", "company_id": "{credential.company_id}" },
+        "output": { "path": "$.response", "wrap": "json" }
+      }
+    },
+    {
+      "name": "chatcone_list_labels",
+      "description": "List the chat labels (contact taxonomy) defined on the workspace, used to segment and tag contacts.",
+      "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {} },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://api-v2.chatcone.com/api/chat/chat-label",
+        "headers": { "authorization": "Bearer {credential.api_key}", "company_id": "{credential.company_id}" },
+        "output": { "path": "$.response", "wrap": "json" }
+      }
+    },
+    {
+      "name": "chatcone_verify_tag",
+      "description": "Officially supported Open API write: map a LINE user (line_id) or Facebook user (fb_id) to a customer_id and attach system tags. Requires the channel key for the target channel to be configured on the account.",
+      "requiresApproval": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "line_id": { "type": "string", "description": "LINE user id to map (provide this or fb_id)" },
+          "fb_id": { "type": "string", "description": "Facebook user id to map (provide this or line_id)" },
+          "customer_id": { "type": "string", "description": "Your system's customer id to associate with the contact" },
+          "tags": { "type": "array", "items": { "type": "string" }, "description": "System tags to attach, e.g. [\"verified\"]" }
+        }
+      },
+      "impl": {
+        "kind": "http_call",
+        "method": "POST",
+        "url": "https://open-api.chatcone.com/v3/verify/system_tags",
+        "headers": { "api_key": "{credential.api_key}", "channel_key": "{credential.channel_key}" },
+        "body": {
+          "line_id": { "from": "input", "key": "line_id", "optional": true },
+          "fb_id": { "from": "input", "key": "fb_id", "optional": true },
+          "customer_id": { "from": "input", "key": "customer_id", "optional": true },
+          "tags": { "from": "input", "key": "tags", "optional": true }
+        },
+        "output": { "wrap": "json" }
+      }
+    }
+  ]
+}

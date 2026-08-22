@@ -21,12 +21,13 @@ Most integration formats describe functions. This one also describes the things 
 
 The `polyhaven` example makes this concrete. It declares three asset types over Poly Haven's CC0 library: HDRIs, PBR textures, and 3D models, about 2,300 in all. In Daslab you search the picker for "concrete floor" and pin the texture into a scene. Every workflow becomes a scene — its data, its tools, the agent that runs it, and the history of everything it did. The pinned texture carries the fields the provider declared (slug, tags, resolution), draws itself through the provider's view, and when the agent needs the actual image maps, `polyhaven_files` resolves the download URLs. No key is needed anywhere in that path.
 
-## Five examples cover the format
+## Six examples cover the format
 
 | Provider | Auth | Shows |
 |----------|------|-------|
 | [`timezone`](providers/timezone/) | none | The minimal provider: one code tool, one live clock view |
 | [`brave`](providers/brave/) | api_key | A provider in one file: a single `http_call` tool with the credential templated into a header |
+| [`chatcone`](providers/chatcone/) | api_key | A real SaaS integration with zero code: multi-field credentials, four `http_call` tools on two API surfaces, an approval-gated write, and shipped guides |
 | [`openmeteo`](providers/openmeteo/) | none | `http_call` tools plus one asset type: pin a location, its view shows the weather right now |
 | [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, one view per type |
 | [`polymarket`](providers/polymarket/) | none | Hierarchy: markets nest under events, browse with search, a market view that fetches live odds |

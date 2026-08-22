@@ -1,0 +1,114 @@
+{
+  "id": "openmeteo",
+  "name": "Open-Meteo",
+  "icon": "cloud.sun.fill",
+  "color": "F97316",
+  "auth": { "type": "none" },
+  "logo": { "type": "brandfetch", "domain": "open-meteo.com" },
+  "website": {
+    "tagline": "Weather forecasts for any place on Earth, no key needed",
+    "description": "Search places by name and pull current conditions and a 7-day forecast from Open-Meteo's free API. Pin a location and its view shows the weather right now.",
+    "category": "data",
+    "useCases": [
+      "Check the forecast for a site visit",
+      "Pin the cities your team works from and see their weather at a glance",
+      "Feed temperature and precipitation into a scheduled report"
+    ],
+    "public": true,
+    "docsUrl": "https://open-meteo.com/en/docs"
+  },
+  "contextMessage": "Open-Meteo is available (no key needed): openmeteo_search_locations resolves a place name to coordinates; openmeteo_forecast returns current conditions and a daily forecast for a latitude/longitude. Temperatures are °C, wind km/h.",
+  "assetTypes": [
+    {
+      "id": "location",
+      "name": "Location",
+      "namePlural": "Locations",
+      "description": "A place with coordinates — pin it to watch its weather",
+      "icon": "mappin.and.ellipse",
+      "hasSearch": true,
+      "fields": [
+        { "key": "name", "label": "Place", "type": "string" },
+        { "key": "country", "label": "Country", "type": "string" },
+        { "key": "latitude", "label": "Latitude", "type": "string" },
+        { "key": "longitude", "label": "Longitude", "type": "string" },
+        { "key": "timezone", "label": "Timezone", "type": "string" }
+      ],
+      "display": {
+        "list": { "title": "{{name}}", "subtitle": "{{country}}" },
+        "card": { "subtitle": ["{{country}}", "{{timezone}}"] }
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "openmeteo_search_locations",
+      "description": "Resolve a place name to coordinates. Returns candidates with name, country, latitude, longitude, and timezone. Use the coordinates with openmeteo_forecast.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Place name, e.g. 'Berlin' or 'Chiang Mai'" },
+          "limit": { "type": "number", "description": "Max candidates (default 10)" }
+        },
+        "required": ["query"]
+      },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://geocoding-api.open-meteo.com/v1/search",
+        "query": {
+          "name": { "from": "input", "key": "query" },
+          "count": { "from": "input", "key": "limit", "optional": true },
+          "language": { "literal": "en" },
+          "format": { "literal": "json" }
+        },
+        "output": { "path": "$.results", "wrap": "json" }
+      }
+    },
+    {
+      "name": "openmeteo_forecast",
+      "description": "Current conditions plus a daily forecast for a latitude/longitude: temperature, humidity, wind, weather code, daily min/max and precipitation probability. Timezone is resolved automatically from the coordinates.",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "latitude": { "type": "number", "description": "Latitude in decimal degrees" },
+          "longitude": { "type": "number", "description": "Longitude in decimal degrees" },
+          "days": { "type": "number", "description": "Forecast days, 1-16 (default 7)" }
+        },
+        "required": ["latitude", "longitude"]
+      },
+      "impl": {
+        "kind": "http_call",
+        "method": "GET",
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "query": {
+          "latitude": { "from": "input", "key": "latitude" },
+          "longitude": { "from": "input", "key": "longitude" },
+          "forecast_days": { "from": "input", "key": "days", "optional": true },
+          "current": { "literal": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code" },
+          "daily": { "literal": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code" },
+          "timezone": { "literal": "auto" }
+        },
+        "output": { "wrap": "json" }
+      }
+    },
+    {
+      "name": "openmeteo_browse",
+      "description": "Browse locations for the asset picker (internal — not an LLM tool).",
+      "role": "browse",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Asset type id: 'location'" },
+          "search": { "type": "string", "description": "Place name typed in the picker" }
+        }
+      },
+      "impl": { "kind": "code", "entry": "tools/browse.ts", "timeoutMs": 15000 }
+    }
+  ],
+  "views": [
+    { "assetType": "openmeteo_location", "render": "views/current.html", "fixture": "views/current.fixture.json" }
+  ]
+}

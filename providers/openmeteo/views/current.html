@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    color: #fff7ed; background: radial-gradient(120% 80% at 50% -10%, rgba(249,115,22,0.28), transparent 60%), #0e0b08;
+    display: flex; align-items: center; justify-content: center; height: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 300px; padding: 22px 22px 18px; border-radius: 24px; text-align: center;
+    background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.10); box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  }
+  .place { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
+  .country { margin-top: 2px; font-size: 12px; color: rgba(255,247,237,0.55); }
+  .icon { font-size: 52px; margin: 14px 0 4px; line-height: 1; }
+  .temp { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .cond { margin-top: 2px; font-size: 13px; color: rgba(255,247,237,0.75); font-weight: 500; }
+  .row { margin-top: 14px; display: flex; gap: 6px; justify-content: center; }
+  .pill {
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    color: #fdba74; background: rgba(249,115,22,0.16); border: 1px solid rgba(249,115,22,0.32);
+  }
+  .foot { margin-top: 12px; font-size: 10px; color: rgba(255,247,237,0.35); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="place" id="place">—</div>
+    <div class="country" id="country"></div>
+    <div class="icon" id="icon">☁️</div>
+    <div class="temp" id="temp">—°</div>
+    <div class="cond" id="cond">loading…</div>
+    <div class="row">
+      <span class="pill" id="hum"></span>
+      <span class="pill" id="wind"></span>
+    </div>
+    <div class="foot" id="foot"></div>
+  </div>
+<script>
+  var A = (window.__ASSET__ || {});
+  document.getElementById("place").textContent = A.name || "Location";
+  document.getElementById("country").textContent = A.country || "";
+
+  // WMO weather codes → label + glyph (the subset Open-Meteo emits).
+  var WMO = {
+    0: ["Clear sky", "☀️"], 1: ["Mainly clear", "🌤️"], 2: ["Partly cloudy", "⛅"], 3: ["Overcast", "☁️"],
+    45: ["Fog", "🌫️"], 48: ["Rime fog", "🌫️"], 51: ["Light drizzle", "🌦️"], 53: ["Drizzle", "🌦️"], 55: ["Heavy drizzle", "🌧️"],
+    61: ["Light rain", "🌦️"], 63: ["Rain", "🌧️"], 65: ["Heavy rain", "🌧️"], 71: ["Light snow", "🌨️"], 73: ["Snow", "🌨️"], 75: ["Heavy snow", "❄️"],
+    80: ["Rain showers", "🌦️"], 81: ["Showers", "🌧️"], 82: ["Violent showers", "⛈️"], 95: ["Thunderstorm", "⛈️"], 96: ["Thunderstorm, hail", "⛈️"], 99: ["Thunderstorm, heavy hail", "⛈️"]
+  };
+
+  // The view fetches live conditions itself — Open-Meteo is keyless and CORS-open.
+  if (A.latitude && A.longitude) {
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(A.latitude) +
+      "&longitude=" + encodeURIComponent(A.longitude) +
+      "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto";
+    fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+      var c = d.current || {};
+      var w = WMO[c.weather_code] || ["—", "☁️"];
+      document.getElementById("temp").textContent = Math.round(c.temperature_2m) + "°";
+      document.getElementById("cond").textContent = w[0];
+      document.getElementById("icon").textContent = w[1];
+      document.getElementById("hum").textContent = "Humidity " + c.relative_humidity_2m + "%";
+      document.getElementById("wind").textContent = "Wind " + Math.round(c.wind_speed_10m) + " km/h";
+      document.getElementById("foot").textContent = (d.timezone || A.timezone || "") + " · " + (c.time || "");
+    }).catch(function () {
+      document.getElementById("cond").textContent = "Live conditions unavailable";
+    });
+  } else {
+    document.getElementById("cond").textContent = "No coordinates on this location";
+  }
+  console.log("openmeteo current view rendered for " + (A.name || "fixture"));
+</script>
+</body>
+</html>

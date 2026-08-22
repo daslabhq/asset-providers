@@ -28,7 +28,15 @@ at boot, or per-workspace at runtime. The same file set works in both places.
   "auth": { "type": "api_key", "credentialField": "api_key" },  // or { "type": "none" }
   "account": {                  // connection UX for api_key providers
     "keyDescription": "From https://acme.example/settings/api",
-    "dashboardUrl": "https://acme.example/settings/api"
+    "dashboardUrl": "https://acme.example/settings/api",
+    "fields": [                 // optional: a multi-field credential instead of one key
+      { "id": "api_key",    "label": "API Key",    "secret": true, "required": true },
+      { "id": "company_id", "label": "Company ID", "required": true,
+        "description": "Sent as the company_id header" }
+    ]
+  },
+  "knowledge": {                // optional: guides shipped with the provider, see below
+    "docs": [{ "slug": "getting-started", "title": "Getting started", "summary": "…" }]
   },
   "logo": { "type": "brandfetch", "domain": "acme.example" },
   //     | { "type": "simpleIcons", "slug": "acme" }
@@ -50,6 +58,11 @@ at boot, or per-workspace at runtime. The same file set works in both places.
 
 `auth.type` is `"api_key"` or `"none"` today. OAuth providers are not yet
 expressible in this format.
+
+With `account.fields`, the connect sheet shows exactly those fields (plus a
+display name) and tools receive **every** account field as the credential —
+`{credential.company_id}` in an `http_call`, `ctx.credential.company_id` in
+code. Without it, the single `auth.credentialField` is the only field.
 
 ## Asset types
 
@@ -91,6 +104,7 @@ what browse returns is what a pinned asset knows about itself.
   "name": "acme_search",        // {provider}_{verb}_{noun}
   "description": "Search Acme widgets by name or status.",
   "readOnly": true,
+  "requiresApproval": false,    // true on writes that must pause for a human
   "role": "general",            // omit for LLM tools; "browse" for the asset picker
   "inputSchema": {              // JSON Schema, type: "object"
     "type": "object",
@@ -141,7 +155,15 @@ glance, which matters for review:
 ```
 
 Values are templates: `{ "literal": "x" }`, `{ "from": "input", "key": "…",
-"optional": true }`, or `{ "from": "credential", "key": "…" }`.
+"optional": true }`, or `{ "from": "credential", "key": "…" }`. A plain string
+may also carry `{input.x}` / `{credential.y}` tokens and interpolates in
+place — `"authorization": "Bearer {credential.api_key}"` — in the URL
+(URL-encoded), headers, query, and body (verbatim). A token that resolves to
+nothing fails the call; use the object form with `optional` for inputs that
+may be absent.
+
+Writes carry `"requiresApproval": true`: the job pauses for a human before
+the call runs, exactly as native integrations do.
 
 ### `code` impl — a function body
 
@@ -186,6 +208,23 @@ its asset's fields from `window.__ASSET__`:
 The fixture is mock field data for previewing the view without a live asset
 (convention: `<view>.fixture.json` next to the HTML). Keep views dependency-free:
 inline CSS/JS, no external scripts.
+
+## Knowledge docs
+
+A provider can ship its own guides — setup, scope, troubleshooting — as
+markdown next to the manifest:
+
+```
+acme/
+├── provider.json       # "knowledge": { "docs": [{ "slug": "getting-started", … }] }
+└── docs/
+    └── getting-started.md
+```
+
+Each entry's `slug` names `docs/{slug}.md`. The guides surface in three
+places at once: the integration's page, the agent's `docs_*` tools (readable
+in any scene, before the provider is even connected), and as a pinnable doc
+asset.
 
 ## Naming conventions
 

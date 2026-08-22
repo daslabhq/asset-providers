@@ -51,8 +51,15 @@ async function runCode(impl: { entry: string }): Promise<unknown> {
 
 /** http_call impls: resolve templates, make the request, extract output. */
 async function runHttpCall(impl: any): Promise<unknown> {
+  const interpolate = (text: string): string =>
+    text.replace(/\{(input|credential)\.([a-zA-Z0-9_]+)\}/g, (_m, from, key) => {
+      const v = (from === "credential" ? credential : input)[key];
+      if (v == null) throw new Error(`template missing ${from}.${key}${from === "credential" ? " (pass --credential " + key + "=...)" : ""}`);
+      return String(v);
+    });
   const resolve = (t: any): string | undefined => {
     if (t == null) return undefined;
+    if (typeof t === "string") return interpolate(t);
     if (typeof t !== "object") return String(t);
     if ("literal" in t) return String(t.literal);
     const source = t.from === "credential" ? credential : input;

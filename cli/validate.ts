@@ -57,7 +57,16 @@ function validateProvider(folder: string): string[] {
   checkAssetTypes(m, err);
   checkTools(m, folder, err);
   checkViews(m, folder, err);
+  checkKnowledge(m, folder, err);
   return errors;
+}
+
+function checkKnowledge(m: any, folder: string, err: (s: string) => void) {
+  for (const d of m.knowledge?.docs ?? []) {
+    if (!d.slug || !/^[a-z0-9][a-z0-9-]*$/.test(d.slug)) err(`knowledge doc slug '${d.slug}' must be lowercase kebab-case`);
+    else if (!existsSync(join(folder, "docs", `${d.slug}.md`))) err(`knowledge doc '${d.slug}' has no docs/${d.slug}.md`);
+    if (!d.title) err(`knowledge doc '${d.slug}' missing 'title'`);
+  }
 }
 
 function checkIdentity(m: any, err: (s: string) => void) {
@@ -72,8 +81,18 @@ function checkAuth(m: any, err: (s: string) => void) {
   if (type !== "api_key" && type !== "none") {
     err(`auth.type '${type}' not supported — use 'api_key' or 'none'`);
   }
-  if (type === "api_key" && !m.account?.keyDescription) {
-    err("api_key providers should set account.keyDescription (shown in the connect sheet)");
+  if (type === "api_key" && !m.account?.keyDescription && !m.account?.fields?.length) {
+    err("api_key providers should set account.keyDescription (shown in the connect sheet) or account.fields");
+  }
+  const ids = new Set<string>();
+  for (const f of m.account?.fields ?? []) {
+    if (!f.id || !f.label) err("account.fields entries need 'id' and 'label'");
+    if (ids.has(f.id)) err(`duplicate account field '${f.id}'`);
+    ids.add(f.id);
+  }
+  if (type === "api_key" && m.account?.fields?.length) {
+    const cf = m.auth?.credentialField ?? "api_key";
+    if (!ids.has(cf)) err(`account.fields must include the credentialField '${cf}' (the field that marks the account as connected)`);
   }
 }
 

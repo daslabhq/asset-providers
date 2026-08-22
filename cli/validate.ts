@@ -137,8 +137,21 @@ function checkTools(m: any, folder: string, err: (s: string) => void) {
     } else if (impl.kind === "code") {
       if (!impl.entry) err(`tool '${label}' code impl missing 'entry'`);
       else if (!existsSync(join(folder, impl.entry))) err(`tool '${label}' entry '${impl.entry}' does not exist`);
-      else if (/^\s*import\s/m.test(readFileSync(join(folder, impl.entry), "utf-8"))) {
-        err(`tool '${label}' entry '${impl.entry}' uses import — code tools are self-contained function bodies`);
+      else {
+        const src = readFileSync(join(folder, impl.entry), "utf-8");
+        const isModule = /^\s*export\s+default\b/m.test(src);
+        if (!isModule && /^\s*import\s/m.test(src)) {
+          err(`tool '${label}' entry '${impl.entry}' uses import but has no 'export default' — body-style tools are self-contained; add 'export default async function (input, ctx)' to make it a module`);
+        }
+        if (isModule) {
+          for (const m of src.matchAll(/^\s*import\s[^'"]*['"](\.[^'"]+)['"]/gm)) {
+            const target = m[1];
+            const base = join(folder, impl.entry, "..", target);
+            if (![base, base + ".ts", base + ".js", join(base, "index.ts")].some((p) => existsSync(p))) {
+              err(`tool '${label}' imports '${target}' which is not in the provider folder`);
+            }
+          }
+        }
       }
     } else if (impl.kind === "http_call") {
       if (!impl.method) err(`tool '${label}' http_call missing 'method'`);

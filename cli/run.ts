@@ -11,7 +11,7 @@
  * loop — validate checks the files, run executes them.
  */
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const [folder, toolName, inputJson, ...rest] = process.argv.slice(2);
 if (!folder || !toolName) {
@@ -41,12 +41,23 @@ const result = tool.impl.kind === "code"
   : await runHttpCall(tool.impl);
 console.log(typeof result === "string" ? result : JSON.stringify(result, null, 2));
 
-/** Code impls are function bodies: reads ctx.input / ctx.credential, returns a value. */
+/**
+ * Code impls come in two styles. Module-style (`export default async function
+ * (input, ctx)`) is imported directly so its own imports resolve; body-style
+ * (statements reading ctx.input, returning a value) is wrapped in a function.
+ */
 async function runCode(impl: { entry: string }): Promise<unknown> {
-  const source = readFileSync(join(folder, impl.entry), "utf-8");
+  const path = join(folder, impl.entry);
+  const source = readFileSync(path, "utf-8");
+  const ctx = { input, credential, fetch: globalThis.fetch.bind(globalThis) };
+  if (/^\s*export\s+default\b/m.test(source)) {
+    const mod = await import(resolve(path));
+    if (typeof mod.default !== "function") throw new Error(`${impl.entry} must export default a function (input, ctx)`);
+    return mod.default(input, ctx);
+  }
   const AsyncFunction = (async () => {}).constructor as new (...args: string[]) => (ctx: unknown) => Promise<unknown>;
   const body = new AsyncFunction("ctx", source);
-  return body({ input, credential, fetch: globalThis.fetch.bind(globalThis) });
+  return body(ctx);
 }
 
 /** http_call impls: resolve templates, make the request, extract output. */

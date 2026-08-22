@@ -188,11 +188,37 @@ return await resp.json();
 
 Rules:
 
-- No `import`s — each tool file is self-contained.
 - `ctx.input` — the tool call's arguments. `ctx.credential` — the connected
-  account's credentials (empty for `auth: none`). `fetch` is global.
+  account's fields (empty for `auth: none`). `fetch` is global.
 - `throw` for errors; the message reaches the caller.
 - Code runs in an isolated subprocess with a hard timeout.
+
+### Module-style tools (shared code)
+
+When several tools share a client, write them as modules instead of bodies:
+a file that `export default`s the handler may `import` any other file in the
+provider folder. The handler receives `(input, ctx)` — the same `ctx` as
+above.
+
+```
+acme/
+├── lib/client.ts        # shared: request(), error glosses, decoders
+└── tools/
+    ├── acme_list.ts     # import { request } from "../lib/client"
+    └── acme_create.ts   #   export default async function (input, ctx) { … }
+```
+
+```ts
+import { request } from "../lib/client";
+
+export default async function (input: any, ctx: any) {
+  return request(ctx.credential, "/widgets", { query: { q: input.query } });
+}
+```
+
+The two styles are told apart by `export default`: a file without it is a
+body; a file with it is a module. Modules are bundled at first run; both
+execute under the same contract, and `cli/run.ts` runs either.
 
 ## Views
 

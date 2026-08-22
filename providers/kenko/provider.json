@@ -1,0 +1,167 @@
+{
+  "id": "kenko",
+  "name": "Kenko",
+  "icon": "figure.yoga",
+  "color": "011919",
+  "auth": { "type": "api_key", "credentialField": "api_key" },
+  "account": {
+    "dashboardUrl": "https://crm.bookeeapp.com",
+    "fields": [
+      { "id": "api_key", "label": "API Key", "secret": true, "required": true, "description": "Shown once when the studio connects the partner in Kenko, or when it creates a new key" },
+      { "id": "center_id", "label": "Center ID", "placeholder": "Optional — the key already names the center", "description": "Optional center UUID. If set, it must match the center the key is bound to, or Kenko answers 403" }
+    ]
+  },
+  "logo": { "type": "brandfetch", "domain": "gokenko.com" },
+  "instructionText": "Connect a Kenko business with the API key the studio generates when it connects a partner. The key is shown once and is bound to one center.",
+  "website": {
+    "tagline": "Fitness and wellness CRM — members, bookings, classes",
+    "description": "Connect a Kenko business — a pilates or yoga studio, a gym, a dance or pole studio, a personal training practice — to bring members, class schedules, and class and appointment bookings into a scene. Kenko processes payments through the business's own linked Stripe account, so invoices, charges, and POS transactions come from connecting Stripe alongside it: the payment history belongs to the business, not to the booking system.",
+    "category": "productivity",
+    "useCases": [
+      "Pull member contacts and booking history into a scene",
+      "Check live class availability and book a member into a session",
+      "Find an open appointment slot with a given instructor or room",
+      "Reconcile revenue by pairing Kenko with its linked Stripe account"
+    ],
+    "public": true,
+    "homeUrl": "https://www.gokenko.com",
+    "setupUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
+    "docsUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
+    "support": "support@gokenko.com"
+  },
+  "knowledge": {
+    "docs": [
+      { "slug": "partner-api", "title": "The Kenko Partner Public API", "summary": "The endpoint surface behind these tools, the class-vs-appointment split, how external_reference_id makes booking idempotent, the per-scope rate limits, and the webhooks Kenko can push back. Links the published API spec." },
+      { "slug": "payments-and-stripe", "title": "Where Kenko payment data actually lives", "summary": "Kenko settles through the business's own linked Stripe account, so invoices, charges, refunds, and POS transactions are read from Stripe — not from Kenko. Covers the Connect model, per-location accounts, and the regional processors." },
+      { "slug": "connecting-kenko", "title": "Connecting a Kenko business", "summary": "Where the Kenko API key comes from, which objects it reaches, and what to connect alongside it for a complete picture." }
+    ]
+  },
+  "contextMessage": "You have access to Kenko (fitness and wellness front of house). Classes and appointments are separate surfaces. A class is a scheduled public session — list it with kenko_list_schedules and book it by schedule_id. An appointment is a service product with no fixed time — list the product with kenko_list_appointments, pick an Instructor or Facility from kenko_list_bookables, find a time with kenko_list_appointment_slots, then book by appointment_id + starts_at + bookables. Booked appointments never appear under schedules; kenko_list_bookings is where both kinds show up. Every booking needs an external_reference_id you choose. It is the idempotency key — reusing one returns the existing booking rather than double-booking, so retrying a failed call is safe. Cancel accepts it in place of the Kenko booking id. Reads cover every booking channel at the center, but you can only create and cancel bookings attributed to this partner key. Event times come back in the center's own timezone — read it from kenko_list_centers before interpreting them. Rate limits are per scope (reads 60-120/min, bookings 20/min), so prefer one dated range query over many single lookups.",
+  "assetTypes": [
+    {
+      "id": "contact",
+      "name": "Member",
+      "namePlural": "Members",
+      "description": "A member or lead at the connected center",
+      "icon": "person.crop.circle.fill",
+      "hasSearch": true,
+      "fields": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" }
+      ],
+      "display": { "list": { "title": "{{name}}", "subtitle": "{{email}}" } }
+    },
+    {
+      "id": "schedule",
+      "name": "Class",
+      "namePlural": "Classes",
+      "description": "A public class session bookable by partners",
+      "icon": "figure.yoga",
+      "fields": [
+        { "key": "name", "label": "Class", "type": "string" },
+        { "key": "startsAt", "label": "Starts", "type": "date" },
+        { "key": "capacity", "label": "Capacity", "type": "number" },
+        { "key": "availableSpots", "label": "Open Spots", "type": "number" }
+      ],
+      "display": { "list": { "title": "{{name}}", "subtitle": "{{startsAt}}" }, "card": { "subtitle": ["{{startsAt}}", "{{availableSpots}} open"] } }
+    },
+    {
+      "id": "booking",
+      "name": "Booking",
+      "namePlural": "Bookings",
+      "description": "A class or appointment booking",
+      "icon": "calendar",
+      "parent": "contact",
+      "fields": [
+        { "key": "kind", "label": "Kind", "type": "string" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "startsAt", "label": "Starts", "type": "date" },
+        { "key": "status", "label": "Status", "type": "string" }
+      ],
+      "display": { "list": { "title": "{{title}}", "subtitle": "{{startsAt}}" }, "card": { "subtitle": ["{{kind}}", "{{status}}"] } }
+    }
+  ],
+  "tools": [
+    { "name": "kenko_list_centers", "description": "List the center(s) this API key is authorized for — typically one row. Returns the connection id, center id, address, and the center's IANA timezone. Call this first to confirm which studio the key reaches and which timezone the event times are in.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {} },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_centers.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_list_schedules", "description": "List public class sessions available for partner booking, ordered by start date. Returns capacity and remaining spots per session. Only classes the studio marked public for partners appear here; booked appointments never do — use kenko_list_bookings for those.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {
+        "start_date": { "type": "string", "description": "Include sessions starting on or after this date (YYYY-MM-DD)" },
+        "end_date": { "type": "string", "description": "Include sessions starting on or before this date (YYYY-MM-DD). Must be >= start_date." },
+        "page": { "type": "number", "description": "Page number" },
+        "per_page": { "type": "number", "description": "Page size, 1-100 (default 50)" } } },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_schedules.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_get_schedule", "description": "Get one public class session by its UUID. Same shape as an entry from kenko_list_schedules. Answers 'Schedule not found.' if the id is unknown, not a public class, or belongs to another center.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": { "schedule_id": { "type": "string", "description": "Event UUID from kenko_list_schedules" } }, "required": ["schedule_id"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_get_schedule.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_get_availability", "description": "Refresh remaining spots for class sessions without re-fetching full schedule payloads. Pass the schedule ids you care about — Kenko has no date filter here, so an unscoped call returns every public schedule at the center and can be large.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": { "schedule_ids": { "type": "array", "items": { "type": "string" }, "description": "Event UUIDs to check. Strongly preferred over omitting." } } },
+      "impl": { "kind": "code", "entry": "tools/kenko_get_availability.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_list_appointments", "description": "List active public appointment products (1:1 or small-group services) that partners can book against. Returns duration, the slot grid increment, and how many concurrent bookings each slot allows. These are service types, not scheduled sessions — use kenko_list_appointment_slots for actual times.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": { "per_page": { "type": "number", "description": "Page size, 1-100 (default 50)" } } },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_appointments.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_list_bookables", "description": "List the Instructors and Facilities linked to public appointments, each with the appointment ids it can serve. You need a bookable id from here both to scope a slot search and to create an appointment booking.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {} },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_bookables.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_list_appointment_slots", "description": "List bookable time slots for one appointment product, scoped to an Instructor or a Facility. Spot counts reflect every booking at the center whatever channel made it, so this is the source of truth for appointment availability. Pass exactly one of user_id or facility_id.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {
+        "appointment_id": { "type": "string", "description": "Appointment product id from kenko_list_appointments" },
+        "start_date": { "type": "string", "description": "Start of the range (YYYY-MM-DD). Required." },
+        "end_date": { "type": "string", "description": "End of the range (YYYY-MM-DD). Must be >= start_date." },
+        "user_id": { "type": "number", "description": "Instructor user id from kenko_list_bookables" },
+        "facility_id": { "type": "number", "description": "Facility id from kenko_list_bookables" },
+        "dates_only": { "type": "boolean", "description": "Return only the dates that have availability, no slot times" } },
+        "required": ["appointment_id", "start_date"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_appointment_slots.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_lookup_contacts", "description": "Search existing customers at the connected center by name, email, or phone. Searches all non-archived contacts, not just partner-created ones. Returns up to 50 matches.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {
+        "query": { "type": "string", "description": "Search term matched against name, email, or phone" },
+        "limit": { "type": "number", "description": "Maximum results, 1-50 (default 50)" } }, "required": ["query"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_lookup_contacts.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_create_contact", "description": "Find-or-create a customer by email. If a contact with that email already exists at the center the existing record is returned and nothing is created. New contacts are attributed to this partner as their lead source. Booking tools do this for you — call this directly only to register someone ahead of a booking.", "requiresApproval": true,
+      "inputSchema": { "type": "object", "properties": {
+        "email": { "type": "string", "description": "Lookup key" },
+        "first_name": { "type": "string", "description": "Defaults to the email local-part when creating" },
+        "last_name": { "type": "string", "description": "Defaults to empty when creating" },
+        "phone": { "type": "string", "description": "Optional, max 50 characters" } }, "required": ["email"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_create_contact.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_list_bookings", "description": "List reservations at the connected center — classes and appointments, from every booking channel including the Kenko CRM and webstore, not just this partner's. Use it as the single picture of what is booked at the studio. Note the asymmetry: reads span all channels, but create and cancel only reach this partner's own bookings.", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {
+        "start_date": { "type": "string", "description": "Events starting on or after this date (YYYY-MM-DD)" },
+        "end_date": { "type": "string", "description": "Events starting on or before this date (YYYY-MM-DD)" },
+        "event_type": { "type": "string", "description": "Filter to one kind of event", "enum": ["class", "appointment"] },
+        "per_page": { "type": "number", "description": "Page size, 1-100 (default 50)" } } },
+      "impl": { "kind": "code", "entry": "tools/kenko_list_bookings.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_create_booking", "description": "Book a customer into a public class or an appointment slot. Pass schedule_id for a class, or appointment_id + starts_at + bookables for an appointment — never both. external_reference_id is your own booking id and acts as the idempotency key: repeating it returns the existing booking instead of double-booking, so a retry after a network error is safe. Payment is recorded as settled externally.", "requiresApproval": true,
+      "inputSchema": { "type": "object", "properties": {
+        "external_reference_id": { "type": "string", "description": "Your unique booking id, max 255 chars (e.g. your order id). Idempotency key — reused values return the existing booking." },
+        "customer": { "type": "object", "description": "The customer to book. Resolved find-or-create by email — an existing contact at the center is reused, never duplicated.",
+          "properties": {
+            "email": { "type": "string", "description": "Lookup key. Required." },
+            "first_name": { "type": "string", "description": "Defaults to the email local-part when creating" },
+            "last_name": { "type": "string", "description": "Defaults to empty when creating" },
+            "phone": { "type": "string", "description": "Optional, max 50 characters" } },
+          "required": ["email"] },
+        "schedule_id": { "type": "string", "description": "Class booking: the event UUID from kenko_list_schedules" },
+        "appointment_id": { "type": "string", "description": "Appointment booking: the product id from kenko_list_appointments" },
+        "starts_at": { "type": "string", "description": "Appointment booking: ISO-8601 start that matches an available slot from kenko_list_appointment_slots" },
+        "bookables": { "type": "array", "description": "Appointment booking: at least one Instructor and/or Facility to reserve",
+          "items": { "type": "object", "properties": {
+            "type": { "type": "string", "description": "instructor or facility", "enum": ["instructor", "facility"] },
+            "bookable_id": { "type": "string", "description": "Instructor user id or facility id from kenko_list_bookables" } },
+            "required": ["type", "bookable_id"] } } },
+        "required": ["external_reference_id", "customer"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_create_booking.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_cancel_booking", "description": "Cancel a booking made by this partner, addressed by either the Kenko numeric booking id or your own external reference id. Only this partner's bookings at the connected studio can be cancelled. Cancelling an already-cancelled booking succeeds quietly. Afterwards the external reference id is free to reuse on a new booking.", "requiresApproval": true,
+      "inputSchema": { "type": "object", "properties": { "booking_id": { "type": "string", "description": "Kenko numeric booking id, or the external_reference_id you booked with" } }, "required": ["booking_id"] },
+      "impl": { "kind": "code", "entry": "tools/kenko_cancel_booking.ts", "timeoutMs": 20000 } },
+    { "name": "kenko_browse", "description": "Browse classes, members and bookings for the asset picker (internal — not an LLM tool).", "role": "browse", "readOnly": true,
+      "inputSchema": { "type": "object", "properties": {
+        "type": { "type": "string", "description": "Asset type id: 'contact' | 'schedule' | 'booking'" },
+        "search": { "type": "string", "description": "Search term from the picker" },
+        "parentId": { "type": "string", "description": "For bookings: the contact to list bookings of" } } },
+      "impl": { "kind": "code", "entry": "tools/browse.ts", "timeoutMs": 20000 } }
+  ]
+}

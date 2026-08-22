@@ -22,11 +22,13 @@
     "docsUrl": "https://brave.com/search/api/"
   },
   "contextMessage": "Use brave_web_search to search the web for current information.",
+  "envFallback": { "envVar": "BRAVE_SEARCH_API_KEY" },
   "tools": [
     {
       "name": "brave_web_search",
       "description": "Search the web using Brave Search. Returns web results including titles, URLs, and descriptions. Use this for finding current information, news, articles, and web content.",
       "readOnly": true,
+      "costPerCall": 0.005,
       "inputSchema": {
         "type": "object",
         "properties": {

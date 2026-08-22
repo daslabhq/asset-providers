@@ -3,8 +3,13 @@
   "name": "Poly Haven",
   "icon": "sun.max.fill",
   "color": "3B82F6",
-  "auth": { "type": "none" },
-  "logo": { "type": "brandfetch", "domain": "polyhaven.com" },
+  "auth": {
+    "type": "none"
+  },
+  "logo": {
+    "type": "brandfetch",
+    "domain": "polyhaven.com"
+  },
   "website": {
     "tagline": "CC0 HDRIs, PBR textures and 3D models — the lighting layer for any 3D scene",
     "description": "Search and pull from Poly Haven's public CC0 library: ~980 HDR environment maps, ~785 PBR texture sets, ~520 models. No key, no attribution, and licensed so assets can be rehosted and shipped anywhere. Image-based lighting from one HDRI is the difference between a 3D view that reads as a product render and one that reads as a toy.",
@@ -27,17 +32,59 @@
       "icon": "sun.max.fill",
       "hasSearch": true,
       "fields": [
-        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
-        { "key": "asset_kind", "label": "Kind", "type": "string" },
-        { "key": "tags", "label": "Tags", "type": "string" },
-        { "key": "authors", "label": "Authors", "type": "string" },
-        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
-        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
-        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+        {
+          "key": "slug",
+          "label": "Poly Haven ID",
+          "type": "string"
+        },
+        {
+          "key": "asset_kind",
+          "label": "Kind",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        },
+        {
+          "key": "authors",
+          "label": "Authors",
+          "type": "string"
+        },
+        {
+          "key": "max_resolution",
+          "label": "Max resolution",
+          "type": "string"
+        },
+        {
+          "key": "thumbnail_url",
+          "label": "Thumbnail",
+          "type": "url"
+        },
+        {
+          "key": "page_url",
+          "label": "Poly Haven page",
+          "type": "url"
+        }
       ],
       "display": {
-        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
-        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+        "list": {
+          "title": "{{name}}",
+          "subtitle": "{{tags}}"
+        },
+        "card": {
+          "subtitle": [
+            "{{asset_kind}}",
+            "{{max_resolution}}"
+          ]
+        }
+      },
+      "tile": {
+        "type": "image",
+        "url": "https://cdn.polyhaven.com/asset_img/primary/{fields.slug}.png?height=480",
+        "title": "{name}",
+        "alt": "{name} — Poly Haven HDRI (CC0)"
       }
     },
     {
@@ -48,17 +95,59 @@
       "icon": "square.grid.3x3.fill",
       "hasSearch": true,
       "fields": [
-        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
-        { "key": "asset_kind", "label": "Kind", "type": "string" },
-        { "key": "tags", "label": "Tags", "type": "string" },
-        { "key": "authors", "label": "Authors", "type": "string" },
-        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
-        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
-        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+        {
+          "key": "slug",
+          "label": "Poly Haven ID",
+          "type": "string"
+        },
+        {
+          "key": "asset_kind",
+          "label": "Kind",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        },
+        {
+          "key": "authors",
+          "label": "Authors",
+          "type": "string"
+        },
+        {
+          "key": "max_resolution",
+          "label": "Max resolution",
+          "type": "string"
+        },
+        {
+          "key": "thumbnail_url",
+          "label": "Thumbnail",
+          "type": "url"
+        },
+        {
+          "key": "page_url",
+          "label": "Poly Haven page",
+          "type": "url"
+        }
       ],
       "display": {
-        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
-        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+        "list": {
+          "title": "{{name}}",
+          "subtitle": "{{tags}}"
+        },
+        "card": {
+          "subtitle": [
+            "{{asset_kind}}",
+            "{{max_resolution}}"
+          ]
+        }
+      },
+      "tile": {
+        "type": "image",
+        "url": "https://cdn.polyhaven.com/asset_img/primary/{fields.slug}.png?height=480",
+        "title": "{name}",
+        "alt": "{name} — Poly Haven texture (CC0)"
       }
     },
     {
@@ -69,17 +158,59 @@
       "icon": "cube.fill",
       "hasSearch": true,
       "fields": [
-        { "key": "slug", "label": "Poly Haven ID", "type": "string" },
-        { "key": "asset_kind", "label": "Kind", "type": "string" },
-        { "key": "tags", "label": "Tags", "type": "string" },
-        { "key": "authors", "label": "Authors", "type": "string" },
-        { "key": "max_resolution", "label": "Max resolution", "type": "string" },
-        { "key": "thumbnail_url", "label": "Thumbnail", "type": "url" },
-        { "key": "page_url", "label": "Poly Haven page", "type": "url" }
+        {
+          "key": "slug",
+          "label": "Poly Haven ID",
+          "type": "string"
+        },
+        {
+          "key": "asset_kind",
+          "label": "Kind",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        },
+        {
+          "key": "authors",
+          "label": "Authors",
+          "type": "string"
+        },
+        {
+          "key": "max_resolution",
+          "label": "Max resolution",
+          "type": "string"
+        },
+        {
+          "key": "thumbnail_url",
+          "label": "Thumbnail",
+          "type": "url"
+        },
+        {
+          "key": "page_url",
+          "label": "Poly Haven page",
+          "type": "url"
+        }
       ],
       "display": {
-        "list": { "title": "{{name}}", "subtitle": "{{tags}}" },
-        "card": { "subtitle": ["{{asset_kind}}", "{{max_resolution}}"] }
+        "list": {
+          "title": "{{name}}",
+          "subtitle": "{{tags}}"
+        },
+        "card": {
+          "subtitle": [
+            "{{asset_kind}}",
+            "{{max_resolution}}"
+          ]
+        }
+      },
+      "tile": {
+        "type": "image",
+        "url": "https://cdn.polyhaven.com/asset_img/primary/{fields.slug}.png?height=480",
+        "title": "{name}",
+        "alt": "{name} — Poly Haven model (CC0)"
       }
     }
   ],
@@ -91,13 +222,29 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": { "type": "string", "description": "Text matched against slug, name, tags and categories. Omit to list everything of a type." },
-          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models' | 'all' (default all)" },
-          "category": { "type": "string", "description": "Poly Haven category filter, e.g. 'indoor', 'skies', 'floor', 'metal'" },
-          "limit": { "type": "number", "description": "Max results (default 20, max 60)" }
+          "query": {
+            "type": "string",
+            "description": "Text matched against slug, name, tags and categories. Omit to list everything of a type."
+          },
+          "type": {
+            "type": "string",
+            "description": "'hdris' | 'textures' | 'models' | 'all' (default all)"
+          },
+          "category": {
+            "type": "string",
+            "description": "Poly Haven category filter, e.g. 'indoor', 'skies', 'floor', 'metal'"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max results (default 20, max 60)"
+          }
         }
       },
-      "impl": { "kind": "code", "entry": "tools/polyhaven_search.ts", "timeoutMs": 20000 }
+      "impl": {
+        "kind": "code",
+        "entry": "tools/polyhaven_search.ts",
+        "timeoutMs": 20000
+      }
     },
     {
       "name": "polyhaven_files",
@@ -106,14 +253,32 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "slug": { "type": "string", "description": "Poly Haven asset id, e.g. 'aircraft_workshop_01', 'brushed_concrete'" },
-          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models'. Optional — inferred from the slug if omitted." },
-          "resolution": { "type": "string", "description": "'1k' | '2k' | '4k' | '8k' | '16k' (availability varies per asset)" },
-          "format": { "type": "string", "description": "HDRIs: 'hdr' | 'exr'. Textures: 'jpg' | 'png' | 'exr'." }
+          "slug": {
+            "type": "string",
+            "description": "Poly Haven asset id, e.g. 'aircraft_workshop_01', 'brushed_concrete'"
+          },
+          "type": {
+            "type": "string",
+            "description": "'hdris' | 'textures' | 'models'. Optional — inferred from the slug if omitted."
+          },
+          "resolution": {
+            "type": "string",
+            "description": "'1k' | '2k' | '4k' | '8k' | '16k' (availability varies per asset)"
+          },
+          "format": {
+            "type": "string",
+            "description": "HDRIs: 'hdr' | 'exr'. Textures: 'jpg' | 'png' | 'exr'."
+          }
         },
-        "required": ["slug"]
+        "required": [
+          "slug"
+        ]
       },
-      "impl": { "kind": "code", "entry": "tools/polyhaven_files.ts", "timeoutMs": 20000 }
+      "impl": {
+        "kind": "code",
+        "entry": "tools/polyhaven_files.ts",
+        "timeoutMs": 20000
+      }
     },
     {
       "name": "polyhaven_info",
@@ -122,12 +287,24 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "slug": { "type": "string", "description": "Poly Haven asset id" },
-          "type": { "type": "string", "description": "'hdris' | 'textures' | 'models'. Optional — inferred if omitted." }
+          "slug": {
+            "type": "string",
+            "description": "Poly Haven asset id"
+          },
+          "type": {
+            "type": "string",
+            "description": "'hdris' | 'textures' | 'models'. Optional — inferred if omitted."
+          }
         },
-        "required": ["slug"]
+        "required": [
+          "slug"
+        ]
       },
-      "impl": { "kind": "code", "entry": "tools/polyhaven_info.ts", "timeoutMs": 20000 }
+      "impl": {
+        "kind": "code",
+        "entry": "tools/polyhaven_info.ts",
+        "timeoutMs": 20000
+      }
     },
     {
       "name": "polyhaven_browse",
@@ -137,16 +314,38 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "description": "Asset type id: 'hdri' | 'texture' | 'model'" },
-          "search": { "type": "string", "description": "Search query from the browse UI" }
+          "type": {
+            "type": "string",
+            "description": "Asset type id: 'hdri' | 'texture' | 'model'"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search query from the browse UI"
+          }
         }
       },
-      "impl": { "kind": "code", "entry": "tools/browse.ts", "timeoutMs": 20000 }
+      "impl": {
+        "kind": "code",
+        "entry": "tools/browse.ts",
+        "timeoutMs": 20000
+      }
     }
   ],
   "views": [
-    { "assetType": "polyhaven_hdri", "render": "views/hdri.html", "fixture": "views/hdri.fixture.json" },
-    { "assetType": "polyhaven_texture", "render": "views/texture.html", "fixture": "views/texture.fixture.json" },
-    { "assetType": "polyhaven_model", "render": "views/model.html", "fixture": "views/model.fixture.json" }
+    {
+      "assetType": "polyhaven_hdri",
+      "render": "views/hdri.html",
+      "fixture": "views/hdri.fixture.json"
+    },
+    {
+      "assetType": "polyhaven_texture",
+      "render": "views/texture.html",
+      "fixture": "views/texture.fixture.json"
+    },
+    {
+      "assetType": "polyhaven_model",
+      "render": "views/model.html",
+      "fixture": "views/model.fixture.json"
+    }
   ]
 }

@@ -97,6 +97,23 @@ it. `assetTypes` lists only the *resource* types:
 A resource asset's field values come from the browse tool's `metadata` (below):
 what browse returns is what a pinned asset knows about itself.
 
+A type may also declare a **tile** — how a pinned asset shows up natively in
+the app, rendered from its fields with no code and no network:
+
+```jsonc
+"tile": { "type": "image", "url": "https://cdn.example/{fields.slug}.png", "title": "{name}" }
+// or
+"tile": { "type": "metric", "value": "{fields.reading}", "label": "{fields.unit}", "color": "00D395" }
+```
+
+`{fields.x}`, `{name}` and `{external_id}` interpolate; a tile whose fields
+are missing renders nothing rather than a broken value. Tiles and views
+coexist: the tile is the native card, the view is the full HTML rendering.
+
+A provider may declare `"envFallback": { "envVar": "ACME_API_KEY" }` at the
+top level: where that server variable is set, a default account exists
+without anyone entering a key. It is ignored where the variable is absent.
+
 ## Tools
 
 ```jsonc

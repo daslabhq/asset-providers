@@ -1,18 +1,23 @@
 # Daslab Asset Providers
 
-An **asset provider** connects an external service to [Daslab](https://daslab.run): the resources the service holds become typed, browseable assets, and the tools an agent uses on them ship in the same folder. There is no SDK and no build step. A provider is a JSON manifest, plain tool files, and an HTML view:
+An **asset provider** connects an external service to [Daslab](https://daslab.run): the resources the service holds become typed, browseable assets, and the tools an agent uses on them ship in the same folder. A provider is a Daslab scene exported to disk: one `scene.json`, one folder per asset type, a knowledge base of markdown. Nothing is listed twice. Tools, browse, views and guides are discovered from the tree, and a tool's metadata lives in its own source file.
 
 ```
-providers/polyhaven/
-├── provider.json          # identity, asset types, tools, views
-├── tools/
-│   ├── polyhaven_search.ts
-│   ├── polyhaven_files.ts
-│   ├── polyhaven_info.ts
-│   └── browse.ts          # feeds the visual asset picker
-└── views/
-    ├── preview.html       # how a pinned asset draws itself
-    └── preview.fixture.json
+providers/kenko/
+├── scene.json                      # identity + the provider block
+├── lib/client.ts                   # the API client, once
+├── assets/
+│   ├── account/
+│   │   ├── asset.json              # credential fields, dashboardUrl
+│   │   └── tools/list_centers.ts   # account-scoped tools
+│   ├── schedule/                   # "Class"
+│   │   ├── asset.json              # name, fields, display, tile
+│   │   └── tools/list.ts           # defineTool({ …meta, run }), 15 lines
+│   ├── contact/ …                  # "Member"
+│   └── booking/ …                  # parent: contact
+├── browse.ts                       # feeds the asset picker
+└── kb/
+    └── partner-api.md              # the knowledge base
 ```
 
 ## Resources become assets you can browse, pin, and see
@@ -28,7 +33,7 @@ The `polyhaven` example makes this concrete. It declares three asset types over 
 | [`timezone`](providers/timezone/) | none | The minimal provider: one code tool, one live clock view |
 | [`brave`](providers/brave/) | api_key | A provider in one file: a single `http_call` tool with the credential templated into a header |
 | [`chatcone`](providers/chatcone/) | api_key | A real SaaS integration with zero code: multi-field credentials, four `http_call` tools on two API surfaces, an approval-gated write, and shipped guides |
-| [`kenko`](providers/kenko/) | api_key | Module-style tools: twelve tools sharing one `lib/client.ts`, three asset types with a contact→booking hierarchy, approval-gated writes, a browse that makes classes and members pinnable, three guides |
+| [`kenko`](providers/kenko/) | api_key | **The scene layout**: `scene.json`, one folder per asset type with its `defineTool` modules over a shared `lib/client.ts`, approval-gated writes, a browse that makes classes, members and bookings pinnable, a `kb/` of guides |
 | [`openmeteo`](providers/openmeteo/) | none | `http_call` tools plus one asset type: pin a location, its view shows the weather right now |
 | [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, one view per type |
 | [`polymarket`](providers/polymarket/) | none | Hierarchy: markets nest under events, browse with search, a market view that fetches live odds |
@@ -37,13 +42,15 @@ All of them pass the validator and load into a Daslab server unchanged.
 
 ## Write one by copying an example
 
-Start from the example closer to what you're building and rename the folder. [The manifest spec](spec/01-manifest.md) covers every field; the short path:
+Start from `kenko` (the scene layout) and rename the folder. [The spec](spec/01-manifest.md) covers every file; the short path:
 
-1. Declare identity and auth in `provider.json`. The format covers API-key and keyless services; OAuth is not expressible in it.
-2. Declare your resource types with their fields and display templates.
-3. Write the tools. Use `http_call` when a tool is one HTTP request: it is declarative, and a reviewer can read it at a glance. Use a `code` body when you need logic; each body is a self-contained file that reads `ctx.input` and returns a value.
-4. Add one tool with `role: "browse"` so the asset picker has something to show.
-5. Give your types a view: an HTML file that reads `window.__ASSET__`, next to a fixture of mock fields for previewing it.
+1. `scene.json`: name, icon, and the `provider` block with id and auth. The format covers API-key and keyless services; OAuth is not expressible in it.
+2. `assets/account/asset.json`: the credential fields the connect sheet shows. Tools receive all of them as `ctx.credential`.
+3. One folder per resource type under `assets/`, each with an `asset.json` (fields, display, tile) and its `tools/`.
+4. Write the tools. A tool is one file, `export default defineTool({ name, description, input, run })`, importing the SDK and your own `lib/`. A tool that is one HTTP request needs no code at all: a `*.http.json` with the templated call.
+5. Add `browse.ts` in a type's folder (or one at the root) so the asset picker has something to show; drop guides in `kb/` as markdown.
+
+The older `provider.json` layout still loads; `bun cli/migrate.ts <folder>` rewrites one into the scene layout.
 
 Then check your work:
 

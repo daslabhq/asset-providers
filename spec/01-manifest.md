@@ -1,47 +1,39 @@
-# Asset Provider Manifest — `provider.json`
+# Asset Provider Spec - the scene layout
 
-An **asset provider** is a folder of files. No build step, no SDK, no server
-code — a JSON manifest plus plain tool and view files:
+An **asset provider** is a folder. The folder is a Daslab scene exported to
+disk: one `scene.json`, one folder per asset type, a knowledge base of
+markdown, shared code. Nothing is listed twice - tools, browse, views and
+guides are discovered from the tree, and a tool's metadata lives in its own
+source file.
 
 ```
 acme/
-├── provider.json            # the manifest — everything is declared here
-├── tools/
-│   ├── acme_search.ts       # code tool (body-style; reads ctx.input, returns a value)
-│   └── browse.ts            # role:"browse" tool — feeds the asset picker
-└── views/
-    ├── preview.html         # a view: how a pinned asset draws (reads window.__ASSET__)
-    └── preview.fixture.json # mock data for previewing the view
+├── scene.json                       # identity + the provider block
+├── lib/client.ts                    # shared code, imported by tools
+├── assets/
+│   ├── account/
+│   │   ├── asset.json               # credential fields, dashboardUrl
+│   │   └── tools/whoami.ts          # account-scoped tools
+│   └── widget/
+│       ├── asset.json               # name, fields, display, tile
+│       ├── browse.ts                # feeds the asset picker for widgets
+│       ├── view.html                # how a pinned widget draws
+│       └── tools/
+│           ├── search.ts            # a tool: defineTool({ …meta, run })
+│           └── ping.http.json       # a no-code tool: one templated request
+└── kb/
+    └── getting-started.md           # the knowledge base
 ```
 
-The Daslab server loads such folders directly — from a directory of providers
-at boot, or per-workspace at runtime. The same file set works in both places.
-
-## Top-level fields
+## scene.json
 
 ```jsonc
 {
-  "id": "acme",                 // globally unique, lowercase, no hyphens
   "name": "Acme",
-  "icon": "shippingbox.fill",   // SF Symbols name
-  "color": "FF6B35",            // 6-char hex, no '#'
-  "auth": { "type": "api_key", "credentialField": "api_key" },  // or { "type": "none" }
-  "account": {                  // connection UX for api_key providers
-    "keyDescription": "From https://acme.example/settings/api",
-    "dashboardUrl": "https://acme.example/settings/api",
-    "fields": [                 // optional: a multi-field credential instead of one key
-      { "id": "api_key",    "label": "API Key",    "secret": true, "required": true },
-      { "id": "company_id", "label": "Company ID", "required": true,
-        "description": "Sent as the company_id header" }
-    ]
-  },
-  "knowledge": {                // optional: guides shipped with the provider, see below
-    "docs": [{ "slug": "getting-started", "title": "Getting started", "summary": "…" }]
-  },
+  "icon": "shippingbox.fill",       // SF Symbols name
+  "color": "FF6B35",                // 6-char hex, no '#'
   "logo": { "type": "brandfetch", "domain": "acme.example" },
-  //     | { "type": "simpleIcons", "slug": "acme" }
-  //     | { "type": "url", "url": "https://..." }
-  "website": {                  // catalog/directory metadata
+  "website": {
     "tagline": "Widget management for teams",
     "description": "…",
     "category": "productivity",
@@ -49,240 +41,170 @@ at boot, or per-workspace at runtime. The same file set works in both places.
     "public": true,
     "docsUrl": "https://docs.acme.example"
   },
-  "contextMessage": "Acme is connected. Use acme_ tools to manage widgets.",
-  "assetTypes": [ /* resource types — see below */ ],
-  "tools":      [ /* see below */ ],
-  "views":      [ /* see below */ ]
-}
-```
-
-`auth.type` is `"api_key"` or `"none"` today. OAuth providers are not yet
-expressible in this format.
-
-With `account.fields`, the connect sheet shows exactly those fields (plus a
-display name) and tools receive **every** account field as the credential —
-`{credential.company_id}` in an `http_call`, `ctx.credential.company_id` in
-code. Without it, the single `auth.credentialField` is the only field.
-
-## Asset types
-
-Assets are the core concept: everything a provider exposes — the account, the
-resources you browse, the things tools operate on — is a typed asset that can
-be pinned into a scene.
-
-The **account type is synthesized** from `auth` + `account`; you never declare
-it. `assetTypes` lists only the *resource* types:
-
-```jsonc
-{
-  "id": "widget",               // bare id — the framework prefixes it ("acme_widget")
-  "name": "Widget",
-  "namePlural": "Widgets",
-  "description": "A widget in your Acme account",
-  "icon": "cube.fill",
-  "parent": "…",                // optional parent type id, for hierarchies
-  "hasSearch": true,            // show a search box in the asset picker
-  "fields": [                   // what a pinned asset carries and displays
-    { "key": "slug", "label": "ID", "type": "string" },
-    { "key": "status", "label": "Status", "type": "string" },
-    { "key": "page_url", "label": "Page", "type": "url" }
-  ],
-  "display": {                  // list/card templates — "{{key}}" interpolates fields
-    "list": { "title": "{{name}}", "subtitle": "{{status}}" },
-    "card": { "subtitle": ["{{status}}"] }
+  "provider": {
+    "id": "acme",                          // globally unique, lowercase, no hyphens
+    "auth": { "type": "api_key" },         // or { "type": "none" }
+    "envFallback": { "envVar": "ACME_API_KEY" },   // optional: a default account where that server var is set
+    "contextMessage": "Acme is connected. Use acme_ tools to manage widgets.",
+    "instructionText": "Enter the API key from Acme → Settings → API."
   }
 }
 ```
 
-A resource asset's field values come from the browse tool's `metadata` (below):
-what browse returns is what a pinned asset knows about itself.
+`provider.auth.type` is `"api_key"` or `"none"`. OAuth is not yet
+expressible.
 
-A type may also declare a **tile** — how a pinned asset shows up natively in
-the app, rendered from its fields with no code and no network:
+## assets/&lt;type&gt;/asset.json
+
+Every folder under `assets/` is an asset type; its name is the type id
+(lowercase, underscores OK). `account` is the connection; the rest are the
+resources a person browses and pins.
 
 ```jsonc
-"tile": { "type": "image", "url": "https://cdn.example/{fields.slug}.png", "title": "{name}" }
-// or
-"tile": { "type": "metric", "value": "{fields.reading}", "label": "{fields.unit}", "color": "00D395" }
+// assets/account/asset.json - the connection
+{
+  "name": "Workspace",
+  "fields": [                             // the connect sheet shows exactly these
+    { "id": "api_key",    "label": "API Key",    "secret": true, "required": true },
+    { "id": "company_id", "label": "Company ID", "required": true,
+      "description": "Sent as the company_id header" }
+  ],
+  "dashboardUrl": "https://acme.example/settings/api"
+}
 ```
 
-`{fields.x}`, `{name}` and `{external_id}` interpolate; a tile whose fields
-are missing renders nothing rather than a broken value. Tiles and views
-coexist: the tile is the native card, the view is the full HTML rendering.
+```jsonc
+// assets/widget/asset.json - a resource type
+{
+  "name": "Widget",
+  "namePlural": "Widgets",
+  "description": "A widget in your Acme workspace",
+  "icon": "cube.fill",
+  "parent": "…",                 // optional parent type id
+  "hasSearch": true,             // a search box in the picker
+  "fields": [                    // what a pinned asset carries and displays
+    { "key": "slug", "label": "ID", "type": "string" },
+    { "key": "status", "label": "Status", "type": "string" }
+  ],
+  "display": { "list": { "title": "{{name}}", "subtitle": "{{status}}" } },
+  "tile": { "type": "image", "url": "https://cdn.acme.example/{{fields.slug}}.png", "title": "{{name}}" }
+  // or "tile": { "type": "metric", "value": "{{fields.reading}}", "label": "{{name}}" }
+}
+```
 
-A provider may declare `"envFallback": { "envVar": "ACME_API_KEY" }` at the
-top level: where that server variable is set, a default account exists
-without anyone entering a key. It is ignored where the variable is absent.
+Tools receive every account field as the credential:
+`ctx.credential.company_id` in code, `{{credential.company_id}}` in an
+`http_call`. A tile is the pinned asset's native card, rendered from its
+fields with no code; a tile whose fields are missing renders nothing.
 
 ## Tools
 
-```jsonc
-{
-  "name": "acme_search",        // {provider}_{verb}_{noun}
-  "description": "Search Acme widgets by name or status.",
-  "readOnly": true,
-  "requiresApproval": false,    // true on writes that must pause for a human
-  "role": "general",            // omit for LLM tools; "browse" for the asset picker
-  "inputSchema": {              // JSON Schema, type: "object"
-    "type": "object",
-    "properties": { "query": { "type": "string", "description": "Search query" } },
-    "required": ["query"]
-  },
-  "impl": { … }                 // http_call or code — see below
-}
-```
+A tool is one file under `assets/<type>/tools/`. Its name defaults to
+`{provider}_{file}_{type}` (`widget/tools/search.ts` → `acme_search_widget`;
+account tools drop the type) - set `name` to pin the agent's contract.
 
-### Roles
-
-- **(none) / `"general"`** — a normal tool, advertised to the AI.
-- **`"browse"`** — powers the visual asset picker; *not* advertised to the AI.
-  It receives `{ type, search, accountId, parentId }` as input — `type` is the
-  bare asset-type id being browsed — and must return:
-
-  ```jsonc
-  {
-    "items": [
-      {
-        "id": "widget-123",       // the resource's native id
-        "name": "My Widget",
-        "description": "subtitle shown in the picker",
-        "metadata": { "slug": "widget-123", "status": "active" }
-        // metadata keys become the pinned asset's fields
-      }
-    ]
-  }
-  ```
-
-Reserved for future use: `enrich`, `health`, `create`, `edit`, `delete`.
-
-### `http_call` impl — declarative REST
-
-Prefer this whenever the tool is one HTTP request. It is auditable at a
-glance, which matters for review:
-
-```jsonc
-{
-  "kind": "http_call",
-  "method": "GET",
-  "url": "https://api.acme.example/search",
-  "query":   { "q":             { "from": "input", "key": "query" } },
-  "headers": { "Authorization": { "from": "credential", "key": "api_key" } },
-  "output":  { "path": "$.results", "wrap": "json" }   // optional extraction
-}
-```
-
-Values are templates: `{ "literal": "x" }`, `{ "from": "input", "key": "…",
-"optional": true }`, or `{ "from": "credential", "key": "…" }`. A plain string
-may also carry `{input.x}` / `{credential.y}` tokens and interpolates in
-place — `"authorization": "Bearer {credential.api_key}"` — in the URL
-(URL-encoded), headers, query, and body (verbatim). A token that resolves to
-nothing fails the call; use the object form with `optional` for inputs that
-may be absent.
-
-Writes carry `"requiresApproval": true`: the job pauses for a human before
-the call runs, exactly as native integrations do.
-
-### `code` impl — a function body
-
-For anything beyond one request — pagination, client-side filtering, response
-shaping:
-
-```jsonc
-{ "kind": "code", "entry": "tools/acme_search.ts", "timeoutMs": 20000 }
-```
-
-The entry file is a **function body**, not a module (default timeout 10s):
-
-```js
-// Reads ctx.input / ctx.credential; `return`s a JSON-serializable value.
-const query = String(ctx.input.query || "");
-const resp = await fetch("https://api.acme.example/search?q=" + encodeURIComponent(query), {
-  headers: { Authorization: "Bearer " + ctx.credential.api_key },
-});
-if (!resp.ok) throw new Error("Acme API " + resp.status);
-return await resp.json();
-```
-
-Rules:
-
-- `ctx.input` — the tool call's arguments. `ctx.credential` — the connected
-  account's fields (empty for `auth: none`). `fetch` is global.
-- `throw` for errors; the message reaches the caller.
-- Code runs in an isolated subprocess with a hard timeout.
-
-### Module-style tools (shared code)
-
-When several tools share a client, write them as modules instead of bodies:
-a file that `export default`s the handler may `import` any other file in the
-provider folder. The handler receives `(input, ctx)` — the same `ctx` as
-above.
-
-```
-acme/
-├── lib/client.ts        # shared: request(), error glosses, decoders
-└── tools/
-    ├── acme_list.ts     # import { request } from "../lib/client"
-    └── acme_create.ts   #   export default async function (input, ctx) { … }
-```
+### Module tools - metadata in the source
 
 ```ts
-import { request } from "../lib/client";
+// assets/widget/tools/search.ts
+import { defineTool } from "@daslabhq/asset-provider";
+import { request } from "../../../lib/client";
 
-export default async function (input: any, ctx: any) {
-  return request(ctx.credential, "/widgets", { query: { q: input.query } });
+export default defineTool({
+  name: "acme_search_widgets",
+  description: "Search Acme widgets by name or status.",
+  readOnly: true,
+  input: { query: { type: "string", description: "Search query" } },   // shorthand for inputSchema.properties
+  required: ["query"],
+  async run(input, ctx) {
+    return request(ctx.credential, "/search", { query: { q: input.query } });
+  },
+});
+```
+
+- `import` anything in the provider folder; the tool is bundled at load.
+- `ctx.input`, `ctx.credential` (all account fields), `ctx.fetch`.
+- `requiresApproval: true` on writes pauses the job for a human.
+- `throw` for errors; the message reaches the caller.
+- Code runs in an isolated subprocess with a hard timeout. Module top
+  levels must be side-effect free - they run once when metadata is read.
+- A file without `export default` is a **body** (statements reading
+  `ctx.input`, ending in `return`); it needs a `*.meta.json` sibling
+  carrying name/description/input.
+
+### No-code tools - `*.http.json`
+
+```jsonc
+// assets/widget/tools/ping.http.json
+{
+  "description": "Ping the Acme API.",
+  "readOnly": true,
+  "input": { "region": { "type": "string" } },
+  "method": "GET",
+  "url": "https://api.acme.example/ping",
+  "query":   { "region": "{{input.region?}}" },
+  "headers": { "authorization": "Bearer {{credential.api_key}}" },
+  "output":  { "path": "$.result", "wrap": "json" }
 }
 ```
 
-The two styles are told apart by `export default`: a file without it is a
-body; a file with it is a module. Modules are bundled at first run; both
-execute under the same contract, and `cli/run.ts` runs either.
+One template syntax everywhere: `{{input.x}}`, `{{credential.y}}`,
+`{{fields.z}}` (tiles), `{{name}}` (display). `{{input.x?}}` is optional:
+a value that is exactly one optional token and resolves to nothing drops the
+key; embedded, it renders empty. A missing required token fails the call.
+(Single-brace `{input.x}` and `{ "from": "input", "key": "x" }` object
+templates still work.)
 
-## Views
+### Browse - `assets/<type>/browse.ts`
 
-A **view** is how a pinned asset draws — a self-contained HTML file that reads
-its asset's fields from `window.__ASSET__`:
+```ts
+import { defineBrowse } from "@daslabhq/asset-provider";
 
-```jsonc
-"views": [
-  { "assetType": "acme_widget", "render": "views/preview.html", "fixture": "views/preview.fixture.json" }
-]
+export default defineBrowse(async ({ search, parentId }, ctx) => ({
+  items: (await list(ctx.credential, search)).map((w) => ({
+    id: w.id, name: w.name, description: w.status,
+    metadata: { slug: w.id, status: w.status },   // becomes the pinned asset's fields
+  })),
+}));
 ```
 
-The fixture is mock field data for previewing the view without a live asset
-(convention: `<view>.fixture.json` next to the HTML). Keep views dependency-free:
-inline CSS/JS, no external scripts.
+`{ type, search, accountId, parentId }` in; `{ items }` out. A root
+`browse.ts` may serve every type by switching on `type`.
 
-## Knowledge docs
+## Views - `assets/<type>/view.html`
 
-A provider can ship its own guides — setup, scope, troubleshooting — as
-markdown next to the manifest:
+A self-contained HTML file reading the pinned asset's fields from
+`window.__ASSET__`; an optional `view.fixture.json` beside it is mock data
+for previewing. Inline CSS/JS, no external scripts.
 
-```
-acme/
-├── provider.json       # "knowledge": { "docs": [{ "slug": "getting-started", … }] }
-└── docs/
-    └── getting-started.md
-```
+## Knowledge base - `kb/*.md`
 
-Each entry's `slug` names `docs/{slug}.md`. The guides surface in three
-places at once: the integration's page, the agent's `docs_*` tools (readable
-in any scene, before the provider is even connected), and as a pinnable doc
-asset.
+Every markdown file in `kb/` is a guide: slug from the filename (lowercase
+kebab), title from the first `# heading` or front matter, `summary:` in
+front matter. Guides render on the integration's page, are readable by the
+agent in any scene, and can be pinned as an asset.
 
-## Naming conventions
+## Naming
 
 | What | Rule | Example |
 |------|------|---------|
 | Provider id | lowercase, no hyphens | `polyhaven`, `acme` |
-| Asset type id | bare, lowercase, underscores OK | `hdri`, `pull_request` |
+| Asset type folder | lowercase, underscores OK | `hdri`, `pull_request` |
 | Tool name | `{provider}_{verb}_{noun}` | `acme_list_widgets` |
 | Icon | SF Symbols name | `cube`, `sun.max.fill` |
 | Color | 6-char hex without `#` | `FF6B35` |
 
 ## Current limitations
 
-- `auth`: `api_key` and `none` only — no OAuth yet.
-- Code tools are single-file bodies — no imports.
-- One account type per provider, always synthesized.
-- Views power previews and declare the asset's render surface; native in-app
-  rendering of custom views is not yet live.
+- `auth`: `api_key` and `none` only.
+- One account type per provider.
+- Views power previews and declare the asset's render surface; native
+  in-app rendering of custom views is not yet live (tiles are).
+
+## Legacy: the v1 `provider.json` layout
+
+Folders with a `provider.json` listing `tools[]` (with `impl.entry` or
+inline `http_call`), `assetTypes[]`, `views[]` and `knowledge.docs[]`, and
+`tools/`, `views/`, `docs/` folders, keep loading unchanged.
+`bun cli/migrate.ts <folder>` rewrites one into the scene layout; the
+remaining examples migrate over time.

@@ -1,0 +1,41 @@
+{
+  "name": "Booking",
+  "namePlural": "Bookings",
+  "description": "A class or appointment booking",
+  "icon": "calendar",
+  "parent": "contact",
+  "fields": [
+    {
+      "key": "kind",
+      "label": "Kind",
+      "type": "string"
+    },
+    {
+      "key": "title",
+      "label": "Title",
+      "type": "string"
+    },
+    {
+      "key": "startsAt",
+      "label": "Starts",
+      "type": "date"
+    },
+    {
+      "key": "status",
+      "label": "Status",
+      "type": "string"
+    }
+  ],
+  "display": {
+    "list": {
+      "title": "{{title}}",
+      "subtitle": "{{startsAt}}"
+    },
+    "card": {
+      "subtitle": [
+        "{{kind}}",
+        "{{status}}"
+      ]
+    }
+  }
+}

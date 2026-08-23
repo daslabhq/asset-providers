@@ -1,0 +1,9 @@
+{
+  "name": "@daslabhq/asset-provider",
+  "version": "0.1.0",
+  "description": "Authoring SDK for Daslab asset providers: defineTool, defineBrowse, defineView and their types.",
+  "type": "module",
+  "exports": { ".": "./index.ts" },
+  "types": "./index.ts",
+  "license": "MIT"
+}

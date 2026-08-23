@@ -1,0 +1,34 @@
+{
+  "name": "Kenko",
+  "icon": "figure.yoga",
+  "color": "011919",
+  "logo": {
+    "type": "brandfetch",
+    "domain": "gokenko.com"
+  },
+  "website": {
+    "tagline": "Fitness and wellness CRM — members, bookings, classes",
+    "description": "Connect a Kenko business — a pilates or yoga studio, a gym, a dance or pole studio, a personal training practice — to bring members, class schedules, and class and appointment bookings into a scene. Kenko processes payments through the business's own linked Stripe account, so invoices, charges, and POS transactions come from connecting Stripe alongside it: the payment history belongs to the business, not to the booking system.",
+    "category": "productivity",
+    "useCases": [
+      "Pull member contacts and booking history into a scene",
+      "Check live class availability and book a member into a session",
+      "Find an open appointment slot with a given instructor or room",
+      "Reconcile revenue by pairing Kenko with its linked Stripe account"
+    ],
+    "public": true,
+    "homeUrl": "https://www.gokenko.com",
+    "setupUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
+    "docsUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
+    "support": "support@gokenko.com"
+  },
+  "provider": {
+    "id": "kenko",
+    "auth": {
+      "type": "api_key",
+      "credentialField": "api_key"
+    },
+    "contextMessage": "You have access to Kenko (fitness and wellness front of house). Classes and appointments are separate surfaces. A class is a scheduled public session — list it with kenko_list_schedules and book it by schedule_id. An appointment is a service product with no fixed time — list the product with kenko_list_appointments, pick an Instructor or Facility from kenko_list_bookables, find a time with kenko_list_appointment_slots, then book by appointment_id + starts_at + bookables. Booked appointments never appear under schedules; kenko_list_bookings is where both kinds show up. Every booking needs an external_reference_id you choose. It is the idempotency key — reusing one returns the existing booking rather than double-booking, so retrying a failed call is safe. Cancel accepts it in place of the Kenko booking id. Reads cover every booking channel at the center, but you can only create and cancel bookings attributed to this partner key. Event times come back in the center's own timezone — read it from kenko_list_centers before interpreting them. Rate limits are per scope (reads 60-120/min, bookings 20/min), so prefer one dated range query over many single lookups.",
+    "instructionText": "Connect a Kenko business with the API key the studio generates when it connects a partner. The key is shown once and is bound to one center."
+  }
+}

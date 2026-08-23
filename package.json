@@ -1,0 +1,12 @@
+{
+  "name": "asset-providers",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "dependencies": {
+    "@daslabhq/asset-provider": "workspace:*"
+  },
+  "scripts": {
+    "validate": "bun cli/validate.ts providers",
+    "run": "bun cli/run.ts"
+  }
+}

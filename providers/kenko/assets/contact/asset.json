@@ -1,0 +1,30 @@
+{
+  "name": "Member",
+  "namePlural": "Members",
+  "description": "A member or lead at the connected center",
+  "icon": "person.crop.circle.fill",
+  "hasSearch": true,
+  "fields": [
+    {
+      "key": "name",
+      "label": "Name",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "label": "Email",
+      "type": "string"
+    },
+    {
+      "key": "phone",
+      "label": "Phone",
+      "type": "string"
+    }
+  ],
+  "display": {
+    "list": {
+      "title": "{{name}}",
+      "subtitle": "{{email}}"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Class",
+  "namePlural": "Classes",
+  "description": "A public class session bookable by partners",
+  "icon": "figure.yoga",
+  "fields": [
+    {
+      "key": "name",
+      "label": "Class",
+      "type": "string"
+    },
+    {
+      "key": "startsAt",
+      "label": "Starts",
+      "type": "date"
+    },
+    {
+      "key": "capacity",
+      "label": "Capacity",
+      "type": "number"
+    },
+    {
+      "key": "availableSpots",
+      "label": "Open Spots",
+      "type": "number"
+    }
+  ],
+  "display": {
+    "list": {
+      "title": "{{name}}",
+      "subtitle": "{{startsAt}}"
+    },
+    "card": {
+      "subtitle": [
+        "{{startsAt}}",
+        "{{availableSpots}} open"
+      ]
+    }
+  }
+}

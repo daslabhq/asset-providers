@@ -1,0 +1,19 @@
+{
+  "name": "Kenko Account",
+  "fields": [
+    {
+      "id": "api_key",
+      "label": "API Key",
+      "secret": true,
+      "required": true,
+      "description": "Shown once when the studio connects the partner in Kenko, or when it creates a new key"
+    },
+    {
+      "id": "center_id",
+      "label": "Center ID",
+      "placeholder": "Optional — the key already names the center",
+      "description": "Optional center UUID. If set, it must match the center the key is bound to, or Kenko answers 403"
+    }
+  ],
+  "dashboardUrl": "https://crm.bookeeapp.com"
+}

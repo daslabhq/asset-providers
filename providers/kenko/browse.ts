@@ -1,4 +1,4 @@
-import { request, unwrap, decodeBooking } from "../lib/client";
+import { request, unwrap, decodeBooking } from "./lib/client";
 
 // role:"browse" — feeds the asset picker. Input: { type, search, parentId }.
 //   contact  → lookupContacts(search); empty search shows nothing (Kenko has no

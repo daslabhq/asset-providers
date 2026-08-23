@@ -2,7 +2,6 @@ import { defineTool } from "@daslabhq/asset-provider";
 import { request, unwrap, str, num } from "../../../lib/client";
 
 export default defineTool({
-  name: "kenko_list_appointment_slots",
   description: "List bookable time slots for one appointment product, scoped to an Instructor or a Facility. Spot counts reflect every booking at the center whatever channel made it, so this is the source of truth for appointment availability. Pass exactly one of user_id or facility_id.",
   readOnly: true,
   input: {

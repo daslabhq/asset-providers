@@ -2,7 +2,6 @@ import { defineTool } from "@daslabhq/asset-provider";
 import { request, unwrap, str, num } from "../../../lib/client";
 
 export default defineTool({
-  name: "kenko_lookup_contacts",
   description: "Search existing customers at the connected center by name, email, or phone. Searches all non-archived contacts, not just partner-created ones. Returns up to 50 matches.",
   readOnly: true,
   input: {

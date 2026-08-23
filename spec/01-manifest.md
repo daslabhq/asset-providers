@@ -99,9 +99,13 @@ fields with no code; a tile whose fields are missing renders nothing.
 
 ## Tools
 
-A tool is one file under `assets/<type>/tools/`. Its name defaults to
-`{provider}_{file}_{type}` (`widget/tools/search.ts` → `acme_search_widget`;
-account tools drop the type) - set `name` to pin the agent's contract.
+A tool is one file under `assets/<type>/tools/`, and **the filename is the
+tool name**: `{provider}_{stem}`, with `_{type}` appended only when the stem
+doesn't already name the type. `widget/tools/search.ts` → `acme_search_widget`;
+`widget/tools/list_widgets.ts` → `acme_list_widgets`; account tools never get
+a suffix. Renaming a file renames the tool, so either name files by their
+full stem or set `name` in the tool to pin the contract independently of the
+path.
 
 ### Module tools - metadata in the source
 

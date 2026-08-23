@@ -5,7 +5,6 @@ import { request, unwrap, decodeBooking, normalizeBookable, toCustomer, str } fr
 // schedule_id and appointment_id, and an appointment needs a slot time plus
 // at least one bookable — so the branch is guarded here.
 export default defineTool({
-  name: "kenko_create_booking",
   description: "Book a customer into a public class or an appointment slot. Pass schedule_id for a class, or appointment_id + starts_at + bookables for an appointment — never both. external_reference_id is your own booking id and acts as the idempotency key: repeating it returns the existing booking instead of double-booking, so a retry after a network error is safe. Payment is recorded as settled externally.",
   requiresApproval: true,
   input: {

@@ -2,7 +2,6 @@ import { defineTool } from "@daslabhq/asset-provider";
 import { request, unwrap, decodeBooking, str, num } from "../../../lib/client";
 
 export default defineTool({
-  name: "kenko_list_bookings",
   description: "List reservations at the connected center — classes and appointments, from every booking channel including the Kenko CRM and webstore, not just this partner's. Use it as the single picture of what is booked at the studio. Note the asymmetry: reads span all channels, but create and cancel only reach this partner's own bookings.",
   readOnly: true,
   input: {

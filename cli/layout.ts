@@ -95,9 +95,11 @@ function sibling(path: string): Partial<DiscoveredTool> | null {
   return { name: j.name, description: j.description, readOnly: j.readOnly, requiresApproval: j.requiresApproval, inputSchema: j.inputSchema ?? { type: "object", properties: j.input ?? {}, ...(j.required?.length ? { required: j.required } : {}) } };
 }
 
+/** The filename is the tool name: {provider}_{stem}, plus _{type} only when the stem doesn't name the type. */
 function defaultName(id: string, typeId: string, file: string): string {
   const stem = file.replace(/\.(http\.json|ts)$/, "").replace(/[^a-z0-9]+/gi, "_").toLowerCase();
-  return typeId === "account" ? `${id}_${stem}` : `${id}_${stem}_${typeId}`;
+  const mentions = stem.split("_").some((p) => p === typeId || p === `${typeId}s` || p === `${typeId}es` || (typeId.endsWith("y") && p === `${typeId.slice(0, -1)}ies`));
+  return typeId === "account" || mentions ? `${id}_${stem}` : `${id}_${stem}_${typeId}`;
 }
 
 // ---- v1 layout --------------------------------------------------------------------

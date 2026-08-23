@@ -4,7 +4,6 @@ import { request, unwrap } from "../../../lib/client";
 // Kenko has no date filter here: unscoped, this returns every public schedule
 // at the center. Pass schedule_ids whenever you can.
 export default defineTool({
-  name: "kenko_get_availability",
   description: "Refresh remaining spots for class sessions without re-fetching full schedule payloads. Pass the schedule ids you care about — Kenko has no date filter here, so an unscoped call returns every public schedule at the center and can be large.",
   readOnly: true,
   input: {

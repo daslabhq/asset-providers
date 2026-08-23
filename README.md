@@ -12,7 +12,7 @@ providers/kenko/
 │   │   └── tools/list_centers.ts   # account-scoped tools
 │   ├── schedule/                   # "Class"
 │   │   ├── asset.json              # name, fields, display, tile
-│   │   └── tools/list.ts           # defineTool({ …meta, run }), 15 lines
+│   │   └── tools/list_schedules.ts # defineTool({ …meta, run }), 15 lines; the filename is the tool name
 │   ├── contact/ …                  # "Member"
 │   └── booking/ …                  # parent: contact
 ├── browse.ts                       # feeds the asset picker

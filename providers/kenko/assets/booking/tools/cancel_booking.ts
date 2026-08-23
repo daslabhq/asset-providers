@@ -3,7 +3,6 @@ import { request, unwrap, decodeBooking, str } from "../../../lib/client";
 
 // Accepts the Kenko numeric booking id or the external_reference_id you booked with.
 export default defineTool({
-  name: "kenko_cancel_booking",
   description: "Cancel a booking made by this partner, addressed by either the Kenko numeric booking id or your own external reference id. Only this partner's bookings at the connected studio can be cancelled. Cancelling an already-cancelled booking succeeds quietly. Afterwards the external reference id is free to reuse on a new booking.",
   requiresApproval: true,
   input: {

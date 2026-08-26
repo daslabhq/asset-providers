@@ -9,7 +9,11 @@ export default defineTool({
     from_ts: { type: "number", description: "Range start, unix epoch milliseconds." },
     to_ts: { type: "number", description: "Range end, unix epoch milliseconds." },
     updated: { type: "string", description: "Filter on the updated timestamp instead of the start time." },
-    comments: { type: "string", description: "Include issue comments in the response." },
+    comments: {
+      type: "string",
+      description:
+        "Pass the literal string \"true\" to include each issue's comments. Any other truthy value — \"1\" included — is silently ignored and the comments are omitted. Comments are the only place a work-order or notification reference written back from another system appears; GET /issues/{id} does not return them.",
+    },
   },
   async run(input: any, ctx: { credential: GuidewheelCredential }) {
     return read(ctx.credential, "/issues", {

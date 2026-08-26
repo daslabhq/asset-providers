@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#14151a;--ink:#ecebe6;--muted:#9a9890;--rule:#2c2e36;--card:#1b1d23;
+--on:#4ade80;--idle:#fbbf24;--off:#f87171;--nd:#6b7280}
+@media (prefers-color-scheme: light){:root{--bg:#faf9f6;--ink:#1a1a18;--muted:#6b6a63;--rule:#ddd9cf;--card:#fffefb;
+--on:#16a34a;--idle:#b45309;--off:#dc2626;--nd:#8a887f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;justify-content:center;
+font:14px/1.45 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;padding:14px 16px}
+.top{display:flex;align-items:center;gap:9px}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--nd);flex:none}
+.dot.online{background:var(--on)}.dot.idle{background:var(--idle)}.dot.offline{background:var(--off)}
+h1{font-size:16px;margin:0;font-weight:640;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.state{font-size:22px;font-weight:660;margin:6px 0 2px;text-transform:capitalize}
+.state.online{color:var(--on)}.state.idle{color:var(--idle)}.state.offline{color:var(--off)}.state.noData,.state.nodata,.state.planned{color:var(--nd)}
+.sub{color:var(--muted);font-size:11.5px}
+.band{display:flex;height:10px;border-radius:5px;overflow:hidden;border:1px solid var(--rule);margin-top:10px;background:var(--card)}
+.band i{display:block;height:100%}
+</style></head><body>
+<div class="top"><span class="dot" id="dot"></span><h1 id="name">Machine</h1></div>
+<div class="state" id="state">—</div>
+<div class="sub" id="sub"></div>
+<div class="band" id="band" hidden></div>
+<script>
+(function(){
+const A = window.__ASSET__ || {}, F = A.fields || {};
+const COLOR = {online:"var(--on)", idle:"var(--idle)", offline:"var(--off)", planned:"var(--nd)", noData:"var(--nd)", nodata:"var(--nd)"};
+const $ = id => document.getElementById(id);
+function paint(state){
+  const s = String(state || "noData");
+  $("dot").className = "dot " + s;
+  $("state").className = "state " + s;
+  $("state").textContent = s === "noData" || s === "nodata" ? "no data" : s;
+}
+$("name").textContent = F.name || A.name || "Machine";
+$("sub").textContent = [F.device_id, F.target ? "target " + F.target + "%" : ""].filter(Boolean).join(" · ");
+paint(F.state);
+// Live upgrade: last 4h of load states for this machine. Static fields remain if
+// the viewer is display-only (no widget session) or the call fails.
+const CTX = window.__DASLAB_WIDGET_CTX__;
+const dev = F.device_id || A.external_id;
+if (CTX && CTX.widgetSession && dev) (async () => {
+  try{
+    const now = Date.now(), from = now - 4*3600*1000;
+    const r = await fetch((CTX.host||"")+"/widget/sdk/call?ws="+encodeURIComponent(CTX.widgetSession),{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({asset_id:CTX.assetId,provider:"guidewheel",tool:"guidewheel_get_device_state",
+        input:{device_id:dev,from_ts:from,to_ts:now}})});
+    if(!r.ok) return;
+    let res = (await r.json()).result;
+    if (res && res.content && res.content[0]) { try{ res = JSON.parse(res.content[0].text) }catch(e){ return } }
+    const spans = (res && res.data && res.data[dev]) || [];
+    if (!spans.length) return;
+    const last = spans.reduce((a,b)=>Number(b.end||0)>Number(a.end||0)?b:a);
+    paint(last.state);
+    const s0 = Math.min(...spans.map(s=>+s.start)), s1 = Math.max(...spans.map(s=>+s.end));
+    $("band").innerHTML = spans.map(s=>'<i style="width:'+(100*((+s.end)-(+s.start))/(s1-s0)).toFixed(2)+'%;background:'+(COLOR[s.state]||"var(--nd)")+'"></i>').join("");
+    $("band").hidden = false;
+    $("sub").textContent += " · live";
+  }catch(e){}
+})();
+})();
+</script>
+</body></html>

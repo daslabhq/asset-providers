@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#14151a;--ink:#ecebe6;--muted:#9a9890;--rule:#2c2e36;--card:#1b1d23;
+--on:#4ade80;--idle:#fbbf24;--off:#f87171;--sap:#6cb6ff}
+@media (prefers-color-scheme: light){:root{--bg:#faf9f6;--ink:#1a1a18;--muted:#6b6a63;--rule:#ddd9cf;--card:#fffefb;
+--on:#16a34a;--idle:#b45309;--off:#dc2626;--sap:#0a6ed1}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;justify-content:center;
+font:14px/1.45 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;padding:14px 16px}
+h1{font-size:15px;margin:0 0 7px;font-weight:640;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+h1 svg{flex:none}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tag{font-size:11px;border:1px solid var(--rule);border-radius:99px;padding:1.5px 9px;color:var(--muted)}
+.st{font-size:12px;font-weight:650;text-transform:capitalize}
+.st.open{color:var(--off)}.st.acknowledged{color:var(--idle)}.st.closed,.st.resolved{color:var(--on)}
+.dev{color:var(--muted);font-size:11.5px;margin-top:6px}
+.sap{margin-top:9px;font-size:12px;color:var(--sap);font-weight:600;display:none}
+</style></head><body>
+<h1><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--off)" stroke-width="2.2"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.5" r=".5" fill="var(--off)"/></svg><span id="title">Downtime issue</span></h1>
+<div class="row"><span class="tag" id="reason">untagged</span><span class="st" id="st">open</span></div>
+<div class="dev" id="dev"></div>
+<div class="sap" id="sap"></div>
+<script>
+(function(){
+const A = window.__ASSET__ || {}, F = A.fields || {};
+const $ = id => document.getElementById(id);
+$("title").textContent = F.title || A.name || "Downtime issue";
+$("reason").textContent = F.reason || "untagged";
+$("st").textContent = F.status || "open"; $("st").className = "st " + (F.status || "open");
+$("dev").textContent = F.device || "";
+// Live upgrade: current status, and a work-order / notification reference if a
+// system wrote one back as a comment. Falls back to the pinned fields silently.
+const CTX = window.__DASLAB_WIDGET_CTX__;
+if (CTX && CTX.widgetSession && A.external_id) (async () => {
+  try{
+    const call = async (tool, input) => {
+      const r = await fetch((CTX.host||"")+"/widget/sdk/call?ws="+encodeURIComponent(CTX.widgetSession),{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({asset_id:CTX.assetId,provider:"guidewheel",tool,input})});
+      if(!r.ok) throw 0;
+      let res = (await r.json()).result;
+      if (res && res.content && res.content[0]) res = JSON.parse(res.content[0].text);
+      return res && res.data !== undefined ? res.data : res;
+    };
+    const one = await call("guidewheel_get_issue", {issue_id: A.external_id});
+    const rec = Array.isArray(one) ? one[0] : one;
+    if (rec && rec.status){ $("st").textContent = rec.status; $("st").className = "st " + rec.status; }
+    // comments only come back from the list endpoint with comments="true"
+    const started = rec && Number(rec.startedAt);
+    if (started){
+      const list = await call("guidewheel_list_issues", {from_ts: started - 60000, to_ts: started + 60000, comments: "true"});
+      const me = (list||[]).find(i => i.id === A.external_id);
+      const cs = (me && me.comments && me.comments.comments) || [];
+      const sap = cs.map(c=>String(c.comment||"")).find(t=>/notification\s+\d+|work order/i.test(t));
+      const m = sap && sap.match(/notification\s+(\d+)/i);
+      if (m){ $("sap").textContent = "→ SAP maintenance notification " + m[1]; $("sap").style.display = "block"; }
+    }
+  }catch(e){}
+})();
+})();
+</script>
+</body></html>

@@ -18,7 +18,7 @@
   "tile": {
     "type": "metric",
     "value": "{{fields.status}}",
-    "label": "{{title}}",
+    "label": "{{name}}",
     "icon": "exclamationmark.triangle"
   }
 }

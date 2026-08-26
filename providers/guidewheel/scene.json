@@ -1,0 +1,28 @@
+{
+  "name": "Guidewheel",
+  "icon": "gauge.with.needle",
+  "color": "16A34A",
+  "logo": { "type": "brandfetch", "domain": "guidewheel.com" },
+  "website": {
+    "tagline": "FactoryOps — machine states, downtime, and energy as assets",
+    "description": "Guidewheel reads the electrical heartbeat of factory machines through clip-on current sensors and derives run/idle/down states, cycles, energy, and operator-tagged downtime issues. Connect a tenant to pin machines and downtime issues as assets, read states, uptime, energy and production actuals — and write back issues, production entries and scrap to close the loop with an ERP or CMMS.",
+    "category": "data",
+    "useCases": [
+      "Pin a machine and read its run/idle/down state over a shift",
+      "Turn a downtime issue into an ERP/CMMS action and write the reference back",
+      "Reconcile production actuals, scrap and energy per shift into reports",
+      "Compute OEE from uptime and production entries — there is no OEE endpoint"
+    ],
+    "public": true,
+    "homeUrl": "https://www.guidewheel.com",
+    "docsUrl": "https://support.guidewheel.app/en/articles/15696169-guidewheel-api-cmms-erp-integration-guide",
+    "setupUrl": "https://support.guidewheel.app/en/articles/6732403-api-integrate-with-guidewheel",
+    "support": "info@guidewheel.com"
+  },
+  "provider": {
+    "id": "guidewheel",
+    "auth": { "type": "api_key", "credentialField": "api_key" },
+    "contextMessage": "You have access to Guidewheel (FactoryOps) — machine run/idle/down states, downtime issues, production, scrap and energy, all sensed from clip-on current transducers on each machine's power line. Timestamps are unix epoch milliseconds (from_ts/to_ts); a few endpoints accept ISO 8601 instead, so if a range parameter is rejected, try the other form. The API is pull-only — there are no webhooks — and it is rate limited to 1000 calls per day and 50 per minute per tenant, so prefer one wide time-range read over many narrow ones and keep any polling loop modest. There is no computed-OEE endpoint: derive OEE from uptime, production entries and scrap. Issues are the only fully read-write entity, which makes them the synchronization point with a CMMS or ERP — attach a work-order number with guidewheel_update_issue. Response field names vary by tenant configuration and Guidewheel distributes the field-level guide on request, so every read tool takes a passthrough `query` object, every write tool takes a passthrough `fields` object, and guidewheel_api_get will probe any path under /api/v1 when a documented parameter does not match.",
+    "instructionText": "Enter the tenant base URL and API key issued by Guidewheel. Both arrive together when Guidewheel provisions API access for your company — there is no self-serve developer portal. Sandbox tenants are available on request."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "Guidewheel Account",
+  "namePlural": "Guidewheel Accounts",
+  "description": "A Guidewheel FactoryOps tenant, connected via base URL and API key.",
+  "icon": "gauge.with.needle",
+  "fields": [
+    {
+      "id": "display_name",
+      "label": "Display name",
+      "placeholder": "Acme FactoryOps",
+      "description": "Optional label, useful when several plants or tenants are connected"
+    },
+    {
+      "id": "base_url",
+      "label": "Tenant base URL",
+      "required": true,
+      "placeholder": "https://api.example.com",
+      "description": "Tenant-specific — delivered together with your API key. Paste it as issued; a trailing /api/v1 is accepted either way"
+    },
+    {
+      "id": "api_key",
+      "label": "API Key",
+      "secret": true,
+      "required": true,
+      "description": "Company-scoped key, sent as the x-api-key header. Only sees data belonging to your company"
+    },
+    {
+      "id": "company_id",
+      "label": "Company ID",
+      "placeholder": "Optional — the key is already company-scoped",
+      "description": "Sent as the company_id query parameter on every call. Only needed when your key spans more than one company"
+    }
+  ],
+  "keyDescription": "Guidewheel provisions API access per company — there is no developer portal. Ask your Guidewheel contact for the tenant base URL, the API key, and (on request) a sandbox tenant.",
+  "dashboardUrl": "https://www.guidewheel.com"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Downtime Issue",
+  "namePlural": "Downtime Issues",
+  "description": "A downtime event or anomaly raised by Guidewheel's alerting.",
+  "icon": "exclamationmark.triangle",
+  "parent": "account",
+  "hasSearch": true,
+  "fields": [
+    { "key": "title", "label": "Title", "type": "string" },
+    { "key": "status", "label": "Status", "type": "string" },
+    { "key": "reason", "label": "Reason", "type": "string" },
+    { "key": "device", "label": "Machine", "type": "string" }
+  ],
+  "display": {
+    "list": { "title": "{{title}}", "subtitle": "{{reason}}" },
+    "card": { "subtitle": ["{{device}}", "{{status}}"] }
+  },
+  "tile": {
+    "type": "metric",
+    "value": "{{fields.status}}",
+    "label": "{{title}}",
+    "icon": "exclamationmark.triangle"
+  }
+}

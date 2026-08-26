@@ -34,6 +34,7 @@ The `polyhaven` example makes this concrete. It declares three asset types over 
 | [`brave`](providers/brave/) | api_key | A provider in one file: a single `http_call` tool with the credential templated into a header |
 | [`chatcone`](providers/chatcone/) | api_key | A real SaaS integration with zero code: multi-field credentials, four `http_call` tools on two API surfaces, an approval-gated write, and shipped guides |
 | [`kenko`](providers/kenko/) | api_key | **The scene layout**: `scene.json`, one folder per asset type with its `defineTool` modules over a shared `lib/client.ts`, approval-gated writes, a browse that makes classes, members and bookings pinnable, a `kb/` of guides |
+| [`guidewheel`](providers/guidewheel/) | api_key | **A tenant-hosted API**: the base URL is itself a credential field, writes are approval-gated, and every tool takes a passthrough so an agent can adapt when the field-level guide is request-only |
 | [`openmeteo`](providers/openmeteo/) | none | `http_call` tools plus one asset type: pin a location, its view shows the weather right now |
 | [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, one view per type |
 | [`polymarket`](providers/polymarket/) | none | Hierarchy: markets nest under events, browse with search, a market view that fetches live odds |

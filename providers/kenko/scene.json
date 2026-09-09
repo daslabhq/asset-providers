@@ -18,7 +18,7 @@
     ],
     "public": true,
     "homeUrl": "https://www.gokenko.com",
-    "setupUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
+    "setupUrl": "https://crm.gokenko.com/#/client/apps",
     "docsUrl": "https://documenter.getpostman.com/view/29834338/2sBY4VJweq",
     "support": "support@gokenko.com"
   },
@@ -29,6 +29,6 @@
       "credentialField": "api_key"
     },
     "contextMessage": "You have access to Kenko (fitness and wellness front of house). Classes and appointments are separate surfaces. A class is a scheduled public session — list it with kenko_list_schedules and book it by schedule_id. An appointment is a service product with no fixed time — list the product with kenko_list_appointments, pick an Instructor or Facility from kenko_list_bookables, find a time with kenko_list_appointment_slots, then book by appointment_id + starts_at + bookables. Booked appointments never appear under schedules; kenko_list_bookings is where both kinds show up. Every booking needs an external_reference_id you choose. It is the idempotency key — reusing one returns the existing booking rather than double-booking, so retrying a failed call is safe. Cancel accepts it in place of the Kenko booking id. Reads cover every booking channel at the center, but you can only create and cancel bookings attributed to this partner key. Event times come back in the center's own timezone — read it from kenko_list_centers before interpreting them. Rate limits are per scope (reads 60-120/min, bookings 20/min), so prefer one dated range query over many single lookups.",
-    "instructionText": "Connect a Kenko business with the API key the studio generates when it connects a partner. The key is shown once and is bound to one center."
+    "instructionText": "Connect a Kenko business with the Authorization Key the studio gets by opening Apps in the Kenko CRM, choosing Daslab, and clicking Connect. The key is shown once and is bound to one center."
   }
 }

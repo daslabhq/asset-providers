@@ -13,17 +13,19 @@ a reading of it, not a replacement.
 
 ## Getting a key
 
-The studio generates the key when it connects a partner in Kenko, and Kenko
-shows it exactly once. Along with it the studio hands over a **Connection ID**
-and a **Center ID**. The key is bound to a single center.
+The studio installs the Daslab app from the **Apps** section of the Kenko CRM
+and clicks **Connect**; Kenko shows the **Authorization Key** exactly once.
+That key is the `X-API-Key` below, bound to a single center. The center's
+**Connection ID** and **Center ID** come back from `GET /centers`.
 
-Becoming a partner is a manual step on Kenko's side — there is a signup form
-linked from the spec page.
+Kenko enables the app per brand and does not enable it on trial accounts. The
+studio-side steps are in
+[Connecting a Kenko business](/docs/kenko/connecting-kenko).
 
-Note this is **not** the same credential as the 16-character Zapier app key in
-[Connecting a Kenko business](/docs/kenko/connecting-kenko). Two different
-doors: the Zapier key reaches memberships and leads, the partner key reaches
-schedules, appointment slots, and booking. This provider uses the partner key.
+Note this is **not** the same credential as the 16-character Zapier app key
+from the same Apps section. Two different doors: the Zapier key reaches
+memberships and leads, the partner key reaches schedules, appointment slots,
+and booking. This provider uses the partner key.
 
 ## Authentication
 

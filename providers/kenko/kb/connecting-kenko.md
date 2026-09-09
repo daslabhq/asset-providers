@@ -1,40 +1,31 @@
 # Connecting a Kenko business
 
-Kenko has two doors, and they issue different keys.
-
-- The **partner key** is what this provider's tools use: class schedules,
-  appointment slots, contacts, and booking. The studio generates it when it
-  connects a partner. See
-  [The Kenko Partner Public API](/docs/kenko/partner-api), spec at
-  <https://documenter.getpostman.com/view/29834338/2sBY4VJweq>.
-- The **Zapier app key** below is the older, broader automation surface. It
-  reaches memberships and leads, which the partner API does not — but it has
-  no scheduling or booking-slot surface.
-
-The rest of this page describes the Zapier key.
+Kenko lists Daslab as an app inside its CRM, and the key you connect with
+comes out of that app. Nothing is generated on the Daslab side.
 
 ## Getting the key
 
-Kenko issues an API key from the app catalogue inside its CRM:
+1. Sign in to the Kenko CRM at <https://crm.gokenko.com> as staff of the
+   location you want to connect, with organisation administrator or owner
+   rights. The app is only visible to staff of that location.
+2. Open **Apps**, find **Daslab**, and click **Connect**.
+3. Kenko shows an **Authorization Key** once. Copy it.
+4. Paste it into the API Key field of the Kenko account in Daslab.
 
-1. Open the Kenko CRM and go to **Apps**.
-2. Find the **Zapier** app and click **Install**.
-3. Kenko returns a 16-character hexadecimal key.
+The key is bound to that one center. `kenko_list_centers` confirms which,
+along with the center's connection id and timezone.
 
-The key is issued per business, and creating one needs organisation
-administrator or owner rights. There is no self-serve trial that reaches this
-screen — the key requires an active Kenko account.
+Kenko enables the Daslab app per brand. If it is not in your Apps list, ask
+your Kenko account manager to add it. Kenko does not enable it on trial
+accounts, so a trial tenant cannot be connected.
 
 ## What the key reaches
 
-The key covers the member and booking surface:
-
-| Object | What you get |
-| --- | --- |
-| Contacts | new contacts, contact updates, lead-to-customer conversion, contact search |
-| Bookings | class bookings and cancellations, appointment bookings and cancellations |
-| Memberships | purchases and status changes |
-| Leads | creating a lead, with email, name, phone, date of birth, source, and marketing consent |
+Class schedules and remaining spots, appointment products with their
+instructors, facilities and open slots, contacts, and bookings. Reads cover
+every booking at the center whatever channel made it; creating and cancelling
+is limited to bookings made through Daslab. The full surface is in
+[The Kenko Partner Public API](/docs/kenko/partner-api).
 
 ## What it does not reach
 
@@ -44,15 +35,20 @@ built. Payments settle in a processor account the business owns, so billing
 data is read from there. See
 [Where Kenko payment data actually lives](/docs/kenko/payments-and-stripe).
 
+Memberships and leads are not on this surface either. Kenko's older Zapier
+app, installed from the same Apps section, issues a separate 16-character key
+that reaches those two objects but has no schedule or booking surface. This
+provider does not use it.
+
 ## A complete picture
 
 For a business you want to see end to end, connect two things:
 
-- **Kenko** — members, memberships, bookings
+- **Kenko** — classes, appointments, members, bookings
 - **Stripe** (or Amazon Payment Services, Adyen, or Razorpay, depending on the
   region) — invoices, charges, refunds, payouts
 
 Joined on the member's email address, that pair answers the questions neither
-side can answer alone: which memberships are lapsing before the renewal
-charge fails, which class formats actually carry revenue, and which members
-paid but stopped showing up.
+side can answer alone: which class formats actually carry revenue, which
+members paid but stopped showing up, and which bookings never turned into a
+charge.

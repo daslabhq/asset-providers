@@ -1,5 +1,5 @@
 import { defineTool } from "@daslabhq/asset-provider";
-import { request, unwrap, str, num } from "../../../lib/client";
+import { request, unwrap, str } from "../../../lib/client";
 
 export default defineTool({
   description: "List bookable time slots for one appointment product, scoped to an Instructor or a Facility. Spot counts reflect every booking at the center whatever channel made it, so this is the source of truth for appointment availability. Pass exactly one of user_id or facility_id.",
@@ -18,12 +18,12 @@ export default defineTool({
       "description": "End of the range (YYYY-MM-DD). Must be >= start_date."
     },
     "user_id": {
-      "type": "number",
-      "description": "Instructor user id from kenko_list_bookables"
+      "type": "string",
+      "description": "Instructor bookable_id from kenko_list_bookables (Kenko issues UUIDs here)"
     },
     "facility_id": {
-      "type": "number",
-      "description": "Facility id from kenko_list_bookables"
+      "type": "string",
+      "description": "Facility bookable_id from kenko_list_bookables"
     },
     "dates_only": {
       "type": "boolean",
@@ -43,8 +43,8 @@ export default defineTool({
       query: {
         start_date: startDate,
         end_date: str(input.end_date),
-        user_id: num(input.user_id),
-        facility_id: num(input.facility_id),
+        user_id: str(input.user_id),
+        facility_id: str(input.facility_id),
         dates_only: input.dates_only,
       },
     });

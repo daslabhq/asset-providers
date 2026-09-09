@@ -1,8 +1,9 @@
 # The Kenko Partner Public API
 
 The tools in this provider are built on Kenko's partner integration surface,
-base path `/api/public/v1` on `https://data.bookeeapp.com` (Kenko serves it
-from the Bookee data host — Kenko is the former Bookee).
+base path `/api/public/v1` on `https://api.gokenko.com`. (Earlier revisions
+of the spec pointed at the Bookee data host — Kenko is the former Bookee — and
+that host now refuses partner calls outright.)
 
 **Published spec:**
 <https://documenter.getpostman.com/view/29834338/2sBY4VJweq>
@@ -141,11 +142,20 @@ Kenko can push events outbound: `booking.confirmed`, `booking.cancelled`,
 `authorization.created`. Every payload carries `connection_id` so multi-studio
 partners can route it.
 
-Subscriptions are configured by Kenko ops, not self-serve: you give them a URL
-and receive a signing secret. Each delivery carries `X-Partner-Event` and
-`X-Partner-Signature`, the latter being `sha256=` plus an HMAC-SHA256 of the
-raw JSON body under that secret. Verify against the raw bytes, before parsing.
+Subscriptions are configured by Kenko ops, not self-serve: the partner hands
+over a URL and receives one signing secret for the whole subscription. Daslab's
+endpoint is `https://daslab.run/webhooks/kenko/events`, and every delivery is
+verified there against that secret before anything is parsed.
 
-**This provider does not implement webhook ingestion yet** — the tools poll.
-Wiring it up would need a receiving route plus a subscription arranged with
-Kenko ops.
+Each delivery is an envelope — `{ id, event, created_at, data }` — with the
+event name repeated in `X-Partner-Event`, the delivery id in
+`X-Partner-Delivery-Id`, and the studio's `connection_id` both in
+`X-Partner-Connection-Id` and inside `data`. `X-Partner-Signature` is `sha256=`
+plus an HMAC-SHA256 of the raw JSON body under the subscription secret.
+
+Deliveries are routed to the connected business by that `connection_id`,
+matched against the Connection ID (or Center ID — Kenko issues the same UUID
+for both) on the Kenko account. Set it when connecting so events land on the
+right scene; without a match the event is still stored, just unattributed.
+Kenko retries a non-2xx delivery up to five times with a 60-second base
+backoff, and repeated deliveries of the same id are stored once.

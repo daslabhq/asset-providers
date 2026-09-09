@@ -13,7 +13,13 @@
       "label": "Center ID",
       "placeholder": "Optional — the key already names the center",
       "description": "Optional center UUID. If set, it must match the center the key is bound to, or Kenko answers 403"
+    },
+    {
+      "id": "connection_id",
+      "label": "Connection ID",
+      "placeholder": "Optional — routes Kenko webhooks to this account",
+      "description": "Studio connection UUID Kenko hands over with the key (kenko_list_centers shows it too). Incoming webhooks carry it, so setting it here lets deliveries land on this account"
     }
   ],
-  "dashboardUrl": "https://crm.bookeeapp.com"
+  "dashboardUrl": "https://crm.gokenko.com"
 }

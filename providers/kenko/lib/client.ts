@@ -1,7 +1,9 @@
 /**
  * Kenko Partner Public API client — shared by every tool in this provider.
  *
- * - Base: https://data.bookeeapp.com/api/public/v1 (Kenko is the former Bookee).
+ * - Base: https://api.gokenko.com/api/public/v1. The spec used to point at the
+ *   Bookee data host (Kenko is the former Bookee); that host now answers 403
+ *   for the partner API, api.gokenko.com is what the published collection hits.
  * - Auth is one static header, `X-API-Key`; the key is per-center and shown
  *   once when the studio connects a partner. `X-Center-Id` is optional and,
  *   when sent, must match the key's center or Kenko answers 403 — so it is
@@ -12,7 +14,7 @@
  * Spec: https://documenter.getpostman.com/view/29834338/2sBY4VJweq
  */
 
-const API_BASE = "https://data.bookeeapp.com/api/public/v1";
+const API_BASE = "https://api.gokenko.com/api/public/v1";
 
 /** Booking status codes — Kenko documents these as integers. */
 export const BOOKING_STATUS: Record<number, string> = {

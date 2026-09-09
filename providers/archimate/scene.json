@@ -1,0 +1,23 @@
+{
+  "name": "ArchiMate",
+  "icon": "square.stack.3d.up",
+  "color": "1F4E79",
+  "website": {
+    "tagline": "The enterprise architecture language, as scene assets",
+    "description": "The ArchiMate 3.2 concept set and its normative relationship table, in a form an agent can use: look a concept up, check whether a relationship is permitted, derive the current-state model of a scene from the assets it holds and the jobs that ran, and read or write the ArchiMate Model Exchange File Format so any architecture tool can open the result. Implemented in our own words; the specification is a standard of The Open Group.",
+    "category": "productivity",
+    "useCases": [
+      "Generate the current-state architecture of a scene from what actually ran",
+      "Check a proposed relationship against the standard before asserting it",
+      "Export a model as an exchange file and open it in Archi, LeanIX, or Ardoq",
+      "Import an existing model so its constraints become scene context"
+    ],
+    "public": true,
+    "docsUrl": "https://pubs.opengroup.org/architecture/archimate3-doc/"
+  },
+  "provider": {
+    "id": "archimate",
+    "auth": { "type": "none" },
+    "contextMessage": "ArchiMate is available. Use archimate_lookup to find the right concept for a thing, archimate_check before asserting a relationship, archimate_derive to build a model from a scene's assets and jobs, and archimate_export or archimate_import to exchange models with architecture tools. A model is a JSON object { name, elements, relationships }; keep it in an archimate/model asset's model field."
+  }
+}

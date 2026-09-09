@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Model</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; color: #1c1c1e; background: #f6f6f4; -webkit-font-smoothing: antialiased; overflow: auto; }
+  header { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px 8px; }
+  header h1 { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+  header .meta { font-size: 11px; color: #6e6e73; }
+  .wrap { position: relative; padding: 0 18px 18px; }
+  svg.edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+  .layer { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.06); }
+  .layer .label { width: 92px; flex: none; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6e6e73; padding-top: 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+  .el { position: relative; min-width: 120px; max-width: 200px; padding: 7px 10px 8px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.14); box-shadow: 0 1px 0 rgba(0,0,0,0.04); font-size: 11.5px; line-height: 1.25; }
+  .el .type { display: block; font-size: 9px; color: rgba(0,0,0,0.5); margin-bottom: 2px; letter-spacing: 0.02em; }
+  .el .name { font-weight: 600; word-break: break-word; }
+  .empty { padding: 24px 18px; color: #6e6e73; font-size: 13px; }
+  footer { padding: 6px 18px 14px; font-size: 10px; color: #8e8e93; }
+</style>
+</head>
+<body>
+  <header><h1 id="title">Model</h1><div class="meta" id="meta"></div></header>
+  <div class="wrap" id="wrap"><svg class="edges" id="edges"></svg></div>
+  <footer id="foot"></footer>
+<script>
+(function () {
+  var A = window.__ASSET__ || {};
+  var F = A.fields || A;
+  var D = window.__DASLAB_WIDGET_DATA__ || null;
+  var meta = window.__DASLAB_WIDGET_META__ || {};
+  var model = null;
+  try { model = D && D.elements ? D : (D && D.model && D.model.elements ? D.model : (typeof F.model === "string" ? JSON.parse(F.model) : F.model)); } catch (e) { model = null; }
+  var title = document.getElementById("title"), meta = document.getElementById("meta"), wrap = document.getElementById("wrap"), foot = document.getElementById("foot");
+  if (!model || !model.elements) { wrap.innerHTML = '<div class="empty">No model yet. Run archimate_derive on this scene, or archimate_import an exchange file, and store the result in this asset.</div>'; title.textContent = F.name || A.name || "Model"; return; }
+  title.textContent = model.name || F.name || "Model";
+  meta.textContent = model.elements.length + " elements, " + model.relationships.length + " relationships";
+  foot.textContent = (model.source ? model.source : "") + (model.generatedAt ? " · " + model.generatedAt.slice(0, 16).replace("T", " ") : "") + (meta.computed_at ? " · view computed " + String(meta.computed_at).slice(0, 16).replace("T", " ") : "") + (meta.stale ? " · STALE" : "");
+
+  var LAYER = {
+    strategy: ["Strategy", "#F5DEAA"], motivation: ["Motivation", "#CCCCFF"], business: ["Business", "#FFFFB5"], application: ["Application", "#B5FFFF"],
+    technology: ["Technology", "#C9E7B7"], physical: ["Physical", "#C9E7B7"], implementation: ["Change", "#FFE0E0"], composite: ["Composite", "#EEEEEE"]
+  };
+  var ORDER = ["strategy", "motivation", "business", "application", "technology", "physical", "implementation", "composite"];
+  var PREFIX = { Business: "business", Application: "application", Technology: "technology" };
+  function layerOf(t) {
+    for (var p in PREFIX) if (t.indexOf(p) === 0) return PREFIX[p];
+    if (/^(Resource|Capability|ValueStream|CourseOfAction)$/.test(t)) return "strategy";
+    if (/^(Node|Device|SystemSoftware|Path|CommunicationNetwork|Artifact)$/.test(t)) return "technology";
+    if (/^(Equipment|Facility|DistributionNetwork|Material)$/.test(t)) return "physical";
+    if (/^(Stakeholder|Driver|Assessment|Goal|Outcome|Principle|Requirement|Constraint|Meaning|Value)$/.test(t)) return "motivation";
+    if (/^(WorkPackage|Deliverable|ImplementationEvent|Plateau|Gap)$/.test(t)) return "implementation";
+    if (/^(Contract|Representation|Product)$/.test(t)) return "business";
+    if (/^DataObject$/.test(t)) return "application";
+    return "composite";
+  }
+  function pretty(t) { return t.replace(/([a-z])([A-Z])/g, "$1 $2"); }
+
+  var byLayer = {}; ORDER.forEach(function (l) { byLayer[l] = []; });
+  model.elements.forEach(function (e) { byLayer[layerOf(e.type)].push(e); });
+  var nodes = {};
+  ORDER.forEach(function (l) {
+    if (!byLayer[l].length) return;
+    var layer = document.createElement("div"); layer.className = "layer";
+    var label = document.createElement("div"); label.className = "label"; label.textContent = LAYER[l][0]; layer.appendChild(label);
+    var row = document.createElement("div"); row.className = "row";
+    byLayer[l].forEach(function (e) {
+      var d = document.createElement("div"); d.className = "el"; d.style.background = LAYER[l][1];
+      d.innerHTML = '<span class="type"></span><span class="name"></span>';
+      d.querySelector(".type").textContent = pretty(e.type); d.querySelector(".name").textContent = e.name;
+      d.title = (e.documentation || "") + (e.properties ? "\n" + Object.keys(e.properties).map(function (k) { return k + ": " + e.properties[k]; }).join("\n") : "");
+      row.appendChild(d); nodes[e.id] = d;
+    });
+    layer.appendChild(row); wrap.appendChild(layer);
+  });
+
+  // Edges: draw structural and dependency relationships as faint lines between element boxes.
+  var svg = document.getElementById("edges");
+  function draw() {
+    var wr = wrap.getBoundingClientRect();
+    svg.setAttribute("width", wrap.scrollWidth); svg.setAttribute("height", wrap.scrollHeight);
+    var STYLE = { Serving: "#3b82f6", Flow: "#f59e0b", Triggering: "#f59e0b", Access: "#10b981", Assignment: "#6b7280", Realization: "#8b5cf6", Aggregation: "#9ca3af", Composition: "#9ca3af", Association: "#d1d5db", Specialization: "#a78bfa", Influence: "#ec4899" };
+    var out = "";
+    model.relationships.forEach(function (r) {
+      var a = nodes[r.source], b = nodes[r.target]; if (!a || !b) return;
+      if (r.type === "Aggregation" || r.type === "Composition" || r.type === "Association") return; // containment reads from the layers
+      var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      var x1 = ra.left - wr.left + ra.width / 2, y1 = ra.top - wr.top + ra.height / 2;
+      var x2 = rb.left - wr.left + rb.width / 2, y2 = rb.top - wr.top + rb.height / 2;
+      var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      out += '<path d="M' + x1 + ' ' + y1 + ' Q' + mx + ' ' + (my - 30) + ' ' + x2 + ' ' + y2 + '" fill="none" stroke="' + (STYLE[r.type] || "#999") + '" stroke-opacity="0.35" stroke-width="1.2"' + (r.type === "Flow" || r.type === "Triggering" ? ' stroke-dasharray="4 3"' : "") + "/>";
+    });
+    svg.innerHTML = out;
+  }
+  draw(); window.addEventListener("resize", draw);
+  console.log("archimate model view rendered: " + model.elements.length + " elements");
+})();
+</script>
+</body>
+</html>

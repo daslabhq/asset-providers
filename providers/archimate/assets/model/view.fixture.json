@@ -1,0 +1,8 @@
+{
+  "name": "Depot maintenance (current state)",
+  "elements": 9,
+  "relationships": 9,
+  "source": "derived from scene scn_demo",
+  "generated_at": "2026-09-09T12:00:00Z",
+  "model": "{\"name\":\"Depot maintenance (current state)\",\"version\":\"3.2\",\"source\":\"derived from scene scn_demo\",\"generatedAt\":\"2026-09-09T12:00:00Z\",\"elements\":[{\"id\":\"scene\",\"type\":\"Grouping\",\"name\":\"Depot maintenance\"},{\"id\":\"cap\",\"type\":\"Capability\",\"name\":\"Field maintenance\"},{\"id\":\"actor\",\"type\":\"BusinessActor\",\"name\":\"Depot technician\"},{\"id\":\"proc\",\"type\":\"BusinessProcess\",\"name\":\"Inspect returned equipment\"},{\"id\":\"fn1\",\"type\":\"ApplicationFunction\",\"name\":\"sap_create_service_order\"},{\"id\":\"fn2\",\"type\":\"ApplicationFunction\",\"name\":\"gmail_send\"},{\"id\":\"erp\",\"type\":\"ApplicationComponent\",\"name\":\"SAP S/4HANA\"},{\"id\":\"pi\",\"type\":\"Device\",\"name\":\"Bench node (Raspberry Pi 5)\"},{\"id\":\"arm\",\"type\":\"Equipment\",\"name\":\"Robot arm\"}],\"relationships\":[{\"id\":\"r1\",\"type\":\"Assignment\",\"source\":\"actor\",\"target\":\"proc\"},{\"id\":\"r2\",\"type\":\"Serving\",\"source\":\"fn1\",\"target\":\"proc\"},{\"id\":\"r3\",\"type\":\"Serving\",\"source\":\"fn2\",\"target\":\"proc\"},{\"id\":\"r4\",\"type\":\"Assignment\",\"source\":\"erp\",\"target\":\"fn1\"},{\"id\":\"r5\",\"type\":\"Flow\",\"source\":\"fn1\",\"target\":\"fn2\"},{\"id\":\"r6\",\"type\":\"Realization\",\"source\":\"proc\",\"target\":\"cap\"},{\"id\":\"r7\",\"type\":\"Aggregation\",\"source\":\"scene\",\"target\":\"proc\"},{\"id\":\"r8\",\"type\":\"Serving\",\"source\":\"pi\",\"target\":\"fn1\"},{\"id\":\"r9\",\"type\":\"Assignment\",\"source\":\"pi\",\"target\":\"arm\"}]}"
+}

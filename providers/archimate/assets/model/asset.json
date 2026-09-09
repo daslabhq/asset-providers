@@ -1,0 +1,19 @@
+{
+  "name": "Model",
+  "namePlural": "Models",
+  "description": "An architecture model: elements and relationships in the ArchiMate language",
+  "icon": "square.stack.3d.up",
+  "fields": [
+    { "key": "name", "label": "Model", "type": "string" },
+    { "key": "elements", "label": "Elements", "type": "number" },
+    { "key": "relationships", "label": "Relationships", "type": "number" },
+    { "key": "source", "label": "Source", "type": "string" },
+    { "key": "generated_at", "label": "Generated", "type": "date" },
+    { "key": "model", "label": "Model JSON", "type": "string" }
+  ],
+  "display": {
+    "list": { "title": "{{name}}", "subtitle": "{{elements}} elements, {{relationships}} relationships" },
+    "card": { "subtitle": ["{{source}}", "{{generated_at}}"] }
+  },
+  "tile": { "type": "metric", "value": "{{fields.elements}}", "label": "{{name}}" }
+}

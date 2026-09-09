@@ -38,6 +38,7 @@ The `polyhaven` example makes this concrete. It declares three asset types over 
 | [`openmeteo`](providers/openmeteo/) | none | `http_call` tools plus one asset type: pin a location, its view shows the weather right now |
 | [`polyhaven`](providers/polyhaven/) | none | The full asset model: three types, searchable browse, typed fields, display templates, one view per type |
 | [`polymarket`](providers/polymarket/) | none | Hierarchy: markets nest under events, browse with search, a market view that fetches live odds |
+| [`archimate`](providers/archimate/) | none | **A language as a provider**: the ArchiMate 3.2 concept set and its normative relationship table as data, tools that look up, check, validate, derive a scene's current-state model from its assets and job history, and read or write the Model Exchange File Format; a layered view; a browse that offers starting models |
 
 All of them pass the validator and load into a Daslab server unchanged.
 

@@ -53,17 +53,30 @@ export interface RequestOptions {
   body?: unknown;
 }
 
-/** One request against the partner API; throws with Kenko's own message on error. */
+/**
+ * One request against the partner API; throws with Kenko's own message on error.
+ * A 429 is waited out and retried: Kenko's limits are per scope and per minute, so a
+ * burst (paging a long schedule, looking up many contacts) would otherwise fail
+ * outright. Retrying a write is safe: a 429 means Kenko did not process it, and
+ * bookings are idempotent on their external_reference_id anyway.
+ */
 export async function request(credential: Credential, path: string, opts: RequestOptions = {}): Promise<any> {
   if (!credential.api_key) throw new Error("Kenko API key is missing on the connected business.");
-  const res = await fetch(buildUrl(path, opts.query), {
-    method: opts.method || "GET",
-    headers: buildHeaders(credential, opts.body !== undefined),
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-  });
-  const payload = await readJson(res);
-  if (!res.ok) throw new Error(describeError(res.status, payload));
-  return payload;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(buildUrl(path, opts.query), {
+      method: opts.method || "GET",
+      headers: buildHeaders(credential, opts.body !== undefined),
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    });
+    if (res.status === 429 && attempt < RATE_LIMIT_RETRIES) {
+      await res.body?.cancel();
+      await sleep(retryDelayMs(res, attempt));
+      continue;
+    }
+    const payload = await readJson(res);
+    if (!res.ok) throw new Error(describeError(res.status, payload));
+    return payload;
+  }
 }
 
 /** Unwrap Kenko's `{ data, links, meta }` envelope. */
@@ -111,6 +124,19 @@ export function toCustomer(input: Record<string, unknown> | undefined) {
 }
 
 // ---- transport details -------------------------------------------------------
+
+const RATE_LIMIT_RETRIES = 4;
+
+/** The wait Kenko names in Retry-After (capped at a minute), else 2s, 4s, 8s, 16s with a little jitter. */
+function retryDelayMs(res: Response, attempt: number): number {
+  const named = Number(res.headers.get("retry-after"));
+  if (Number.isFinite(named) && named > 0) return Math.min(named, 60) * 1000;
+  return 2000 * 2 ** attempt + Math.floor(Math.random() * 500);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function buildUrl(path: string, query?: Record<string, unknown>): string {
   const url = new URL(API_BASE + path);
